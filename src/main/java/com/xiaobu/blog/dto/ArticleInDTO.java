@@ -13,6 +13,8 @@ import javax.validation.constraints.NotEmpty;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * - 发布文章
@@ -58,9 +60,15 @@ public class ArticleInDTO implements Convert<ArticleWithTag> {
     }
 
     private String extractAbstractInfo(String content) {
-        if (content.length() > 255) {
-            return content.substring(0, 255);
+
+        String pattern = "<\\/?.+?>";
+        Pattern p = Pattern.compile(pattern);
+        Matcher m = p.matcher(content);
+        String res = m.replaceAll("");
+
+        if (res.length() > 255) {
+            return res.substring(0, 255);
         }
-        return content;
+        return res;
     }
 }

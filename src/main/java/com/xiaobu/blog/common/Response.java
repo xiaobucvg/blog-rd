@@ -1,6 +1,7 @@
 package com.xiaobu.blog.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import javax.servlet.http.HttpServletResponse;
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author zh  --2020/3/17 20:31
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Response {
 
     private int code;

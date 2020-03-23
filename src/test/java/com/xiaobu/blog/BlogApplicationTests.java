@@ -1,9 +1,8 @@
 package com.xiaobu.blog;
 
-import com.xiaobu.blog.common.Const;
-import com.xiaobu.blog.common.Pageable;
+import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.Response;
-import com.xiaobu.blog.common.Sort;
+import com.xiaobu.blog.common.page.Sort;
 import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.mapper.ArticleMapper;
 import com.xiaobu.blog.model.Article;
@@ -14,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @SpringBootTest
@@ -86,7 +84,7 @@ class BlogApplicationTests {
 
     @Test
     void generateArticle() {
-        for (int i = 10; i < 10000; i++) {
+        for (int i = 10000; i < 10200; i++) {
             Article article = new Article();
             article.setAbstractInfo("摘要~");
             article.setContent("内容~");
@@ -106,18 +104,12 @@ class BlogApplicationTests {
     void testPageable() {
         Pageable pageable = new Pageable();
         pageable.setStartPage(3);
-        pageable.setPageCount(10);
-        pageable.setCount(5);
-        pageable.getSorts().add(new Sort("reading", "desc"));
-        pageable.getSorts().add(new Sort("title", "asc"));
-
-        pageable.calculate();
+        pageable.setCount(10);
+        pageable.getSorts().add(new Sort("reading", "asc"));
 
         Response res = articleService.getArticles(pageable);
 
         Object data = res.getData();
-        System.out.println("结果数量：" + ((List) data).size());
-        ((List) data).forEach(System.out::println);
     }
 
     @Test
@@ -125,5 +117,37 @@ class BlogApplicationTests {
         Response res = articleService.changeArticleStatus("100,952", 1003);
     }
 
+    @Test
+    void testSearch(){
+        Pageable pageable = new Pageable();
+        pageable.setStartPage(2);
+        pageable.setCount(50);
 
+        Response res = articleService.searchArticle(pageable,"标题");
+        Object data = res.getData();
+    }
+
+    @Test
+    void testGetDetail(){
+        articleService.getDetailArticle(24L);
+    }
+
+
+    @Test
+    void testArchive(){
+        Pageable pageable = new Pageable();
+        pageable.setCount(3);
+        pageable.setStartPage(1);
+        articleService.archiveArticles(pageable);
+    }
+
+    @Test
+    void testGetArticleByTag(){
+        // 53 tagid
+        Pageable pageable = new Pageable();
+        pageable.setCount(1);
+        pageable.setStartPage(1);
+
+        articleService.getTagServices(pageable,53L);
+    }
 }

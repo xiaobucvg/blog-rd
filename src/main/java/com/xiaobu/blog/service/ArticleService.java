@@ -1,14 +1,17 @@
 package com.xiaobu.blog.service;
 
 import com.xiaobu.blog.common.Const;
-import com.xiaobu.blog.common.Pageable;
 import com.xiaobu.blog.common.Response;
 import com.xiaobu.blog.common.exception.ArticleException;
+import com.xiaobu.blog.common.page.Page;
+import com.xiaobu.blog.common.page.Pageable;
+import com.xiaobu.blog.dto.ArticleDetailOutDTO;
 import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.dto.ArticleItemOutDTO;
 import com.xiaobu.blog.mapper.ArticleMapper;
 import com.xiaobu.blog.mapper.TagMapper;
 import com.xiaobu.blog.model.Article;
+import com.xiaobu.blog.model.ArticleExample;
 import com.xiaobu.blog.model.Tag;
 import com.xiaobu.blog.model.TagExample;
 import com.xiaobu.blog.model.wrapper.ArticleWithTag;
@@ -16,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -119,12 +124,21 @@ public class ArticleService {
 
     /**
      * 根据分页信息获取文章
+     * - 获取正常状态的文章总数量，计算分页
+     * - 将结果用分页进行包装
      */
     public Response getArticles(Pageable pageable) {
         pageable.calculate();
 
         List<Article> articles = articleMapper._selectArticles(pageable);
-        return Response.newSuccessInstance("获取文章记录成功", convertArticleBatch(articles));
+
+        ArticleExample example = new ArticleExample();
+        example.createCriteria().andStatusNotEqualTo(Const.ArticleStatus.DELETED.getCode());
+        long articleCounts = articleMapper.countByExample(example);
+
+        Page page = Page.createPage(pageable, articleCounts, convertArticleBatch(articles));
+
+        return Response.newSuccessInstance("获取文章记录成功", page);
     }
 
 
@@ -154,7 +168,9 @@ public class ArticleService {
     }
 
     /**
-     * 分割并检验字符串形式的 ID
+     * 分割并检验字符串形式的 ID 是否能够变成 int 类型的集合
+     *
+     * @return idList
      */
     private List<String> splitIds(String ids) {
         String[] idArray = ids.split(",");
@@ -178,5 +194,128 @@ public class ArticleService {
             }
         }
         return false;
+    }
+
+    /**
+     * 分页搜索文章
+     */
+    public Response searchArticle(Pageable pageable, String keywords) {
+        pageable.calculate();
+        long articleCounts = articleMapper._countArticlesByKeywords(keywords);
+
+        List<Article> articles = articleMapper._selectByKeywords(pageable, keywords);
+
+        List<ArticleItemOutDTO> data = this.convertArticleBatch(articles);
+
+        Page page = Page.createPage(pageable, articleCounts, data);
+
+        return Response.newSuccessInstance("搜索完成!", page);
+    }
+
+    /**
+     * 获取文章详细信息
+     */
+    public Response getDetailArticle(Long id) {
+        ArticleWithTag articleWithTag = articleMapper._selectArticleWithTag(id);
+        if (articleWithTag != null) {
+            ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().toModel(articleWithTag);
+            return Response.newSuccessInstance("获取详细信息成功", articleDetailOutDTO);
+        }
+        throw new ArticleException("没有找到文章");
+    }
+
+    // ====================== 前台 ====================== //
+
+    /**
+     * 分页获取已经发布的文章
+     */
+    public Response getPublishedArticles(Pageable pageable) {
+        pageable.calculate();
+
+        List<Article> articles = articleMapper._selectPublishedArticlesByPage(pageable);
+
+        ArticleExample example = new ArticleExample();
+        example.createCriteria().andStatusIn(Arrays.asList(Const.ArticleStatus.PUBLISHED.getCode()));
+        long articleCounts = articleMapper.countByExample(example);
+
+        Page page = Page.createPage(pageable, articleCounts, convertArticleBatch(articles));
+
+        return Response.newSuccessInstance("获取成功", page);
+
+    }
+
+
+    /**
+     * 分页搜索已经发布的文章
+     */
+    public Response searchPublishedArticles(Pageable pageable, String keywords) {
+        pageable.calculate();
+
+        long articleCounts = articleMapper._countPublisedArticlesByKeywords(keywords);
+
+        List<Article> articles = articleMapper._selectPublishedArticlesByKeywords(pageable, keywords);
+
+        List<ArticleItemOutDTO> data = this.convertArticleBatch(articles);
+
+        Page page = Page.createPage(pageable, articleCounts, data);
+
+        return Response.newSuccessInstance("搜索完成!", page);
+    }
+
+    /**
+     * 归档查询
+     * {
+     * date:[
+     * {}，
+     * {}，
+     * ]
+     * }
+     * 1. 先把所有月份查出来
+     * 2. 根据月份查询每个月的文章
+     * 3. 将其组装
+     */
+
+    public Response archiveArticles(Pageable pageable) {
+        pageable.calculate();
+
+        // 查询总的归档数
+        long archiveCount = articleMapper._selectArchiveCounts();
+
+        // 分页查询归档
+        List<String> months = articleMapper._selectMonth(pageable);
+
+        if (months == null || months.size() == 0) {
+            throw new ArticleException("还没有归档哦~");
+        }
+
+        // 遍历归档查询具体文章
+        Map<String, List<ArticleItemOutDTO>> res = new LinkedHashMap<>();
+
+        months.forEach(month -> {
+            List<Article> articles = articleMapper._selectArticlesByMonth(month);
+            res.put(month, convertArticleBatch(articles));
+        });
+
+        Page page = Page.createPage(pageable, archiveCount, res);
+
+        return Response.newSuccessInstance("获取成功", page);
+    }
+
+
+    /**
+     * 分页获取标签下的文章
+     */
+    public Response getTagServices(Pageable pageable, Long tagid) {
+        pageable.calculate();
+        // 1. 获取数量
+        long count = tagMapper._selectArticlesCount(tagid);
+
+        // 2. 查询具体数据
+        List<Article> articles = articleMapper._selectPublishedArticlesByTag(tagid, pageable);
+        List<ArticleItemOutDTO> articleItemOutDTOS = convertArticleBatch(articles);
+        // 3. 封装返回
+        Page page = Page.createPage(pageable, count, articleItemOutDTOS);
+
+        return Response.newSuccessInstance("获取文章成功", page);
     }
 }

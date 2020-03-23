@@ -1,4 +1,4 @@
-package com.xiaobu.blog.common;
+package com.xiaobu.blog.common.page;
 
 import lombok.Data;
 
@@ -15,10 +15,7 @@ public class Pageable {
     private int startPage; // 开始页码,从 1 开始
 
     @Min(value = 1,message = "每页的数量最少为 1")
-    private int pageCount; // 每页数量
-
-    @Min(value = 1,message = "最少需要查询 1 条数据")
-    private int count;     // 需要查询的数量
+    private int count; // 每页数量
 
     private Set<Sort> sorts = new HashSet<>(); // 需要排序的字段和排序规则
 
@@ -28,7 +25,7 @@ public class Pageable {
 
     /** 计算开始位置和结束位置 */
     public void calculate(){
-        int start = (this.startPage - 1) * this.pageCount;
+        int start = (this.startPage - 1) * this.count;
         this.setStart(start);
         int end = this.count;
         this.setEnd(end);

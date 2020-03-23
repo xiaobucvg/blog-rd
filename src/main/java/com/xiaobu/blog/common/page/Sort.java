@@ -1,4 +1,4 @@
-package com.xiaobu.blog.common;
+package com.xiaobu.blog.common.page;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

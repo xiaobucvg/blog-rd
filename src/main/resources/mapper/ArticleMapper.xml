@@ -491,24 +491,156 @@
         select
         <include refid="Base_Column_List"/>
         from sm_article
+        where status != 1003
         order by reading
         desc limit 0,#{count};
     </select>
     <select id="_selectArticles" resultType="com.xiaobu.blog.model.Article"
-            parameterType="com.xiaobu.blog.common.Pageable">
+            parameterType="com.xiaobu.blog.common.page.Pageable">
         select
         <include refid="Base_Column_List"/>
         from sm_article
-        <if test="sorts.size > 0">
+        where status != 1003
+        <if test="sorts != null and sorts.size > 0">
             order by
             <trim>
                 <foreach collection="sorts" item="sort" separator=",">
-                    #{sort.name} #{sort.rule}
+                    ${sort.name} ${sort.rule}
                 </foreach>
             </trim>
         </if>
-        limit #{start},#{end}
+        limit ${start},${end}
     </select>
+    <select id="_selectByKeywords" resultType="com.xiaobu.blog.model.Article">
+        select
+        <include refid="Base_Column_List"/>
+        from sm_article
+        where status != 1003
+        and MATCH (title,content,abstract_info)
+        AGAINST (#{keywords} IN BOOLEAN MODE)
+        <if test="pageable.sorts != null and pageable.sorts.size > 0">
+            order by
+            <trim>
+                <foreach collection="pageable.sorts" item="sort" separator=",">
+                    ${sort.name} ${sort.rule}
+                </foreach>
+            </trim>
+        </if>
+        limit ${pageable.start},${pageable.end}
+    </select>
+    <select id="_countArticlesByKeywords" resultType="java.lang.Long">
+        select count(*)
+        from sm_article
+        where status != 1003
+          and MATCH(title, content, abstract_info)
+                    AGAINST(#{keywords} IN BOOLEAN MODE);
+    </select>
+    <select id="_selectArticleWithTag" resultMap="article_width_tag">
+        <if test="id > 0">
+            select
+            a.id as aid,a.title as atitle,a.abstract_info as aabstractInfo,
+            a.content as acontent,a.status as astatus,a.reading as areading,
+            a.create_time as acreateTime,
+            a.update_time as aupdateTIme,
+            t.id as tid,t.name as tname
+            from sm_article a join sm_article__tag at join sm_tag t
+            on a.id = at.article_id and t.id = at.tag_id
+            where a.id = #{id}
+        </if>
+    </select>
+    <select id="_selectPublishedArticlesByPage" resultType="com.xiaobu.blog.model.Article">
+        select
+        <include refid="Base_Column_List"/>
+        from sm_article
+        where status = 1001
+        <if test="sorts != null and sorts.size > 0">
+            order by
+            <trim>
+                <foreach collection="sorts" item="sort" separator=",">
+                    ${sort.name} ${sort.rule}
+                </foreach>
+            </trim>
+        </if>
+        limit ${start},${end}
+    </select>
+    <select id="_countPublisedArticlesByKeywords" resultType="java.lang.Long">
+        select count(*)
+        from sm_article
+        where status = 1001
+          and MATCH(title, content, abstract_info)
+                    AGAINST(#{keywords} IN BOOLEAN MODE);
+    </select>
+    <select id="_selectPublishedArticlesByKeywords" resultType="com.xiaobu.blog.model.Article">
+        select
+        <include refid="Base_Column_List"/>
+        from sm_article
+        where status = 1001
+        and MATCH (title,content,abstract_info)
+        AGAINST (#{keywords} IN BOOLEAN MODE)
+        <if test="pageable.sorts != null and pageable.sorts.size > 0">
+            order by
+            <trim>
+                <foreach collection="pageable.sorts" item="sort" separator=",">
+                    ${sort.name} ${sort.rule}
+                </foreach>
+            </trim>
+        </if>
+        limit ${pageable.start},${pageable.end}
+    </select>
+    <select id="_selectMonth" resultType="java.lang.String" parameterType="com.xiaobu.blog.common.page.Pageable">
+        select date_format(create_time, '%Y年%m月')
+        from sm_article
+        where status = 1001
+        group by date_format(create_time, '%Y年%m月')
+        limit ${start}, ${end}
+    </select>
+    <select id="_selectArticlesByMonth" resultType="com.xiaobu.blog.model.Article">
+        select
+        <include refid="Base_Column_List"/>
+        from sm_article
+        where status=1001 and date_format(create_time,'%Y年%m月')=#{month};
+    </select>
+    <select id="_selectArchiveCounts" resultType="java.lang.Long">
+        select count(*)
+        from (
+                 select date_format(create_time, '%y%m')
+                 from sm_article
+                 where status = 1001
+                 group by date_format(create_time, '%y%m')
+             ) as count
+    </select>
+    <select id="_selectPublishedArticlesByTag" resultType="com.xiaobu.blog.model.Article">
+        select
+        <include refid="Base_Column_List"/>
+        from sm_article
+        where
+        id in
+        (select article_id from sm_article__tag where tag_id = #{tagid})
+        and status = 1001
+        <if test="pageable.sorts != null and pageable.sorts.size > 0">
+            order by
+            <trim>
+                <foreach collection="pageable.sorts" item="sort" separator=",">
+                    ${sort.name} ${sort.rule}
+                </foreach>
+            </trim>
+        </if>
+        limit ${pageable.start},${pageable.end}
+    </select>
+    <resultMap id="article_width_tag" type="com.xiaobu.blog.model.wrapper.ArticleWithTag">
+        <id property="article.id" column="aid"/>
+        <result property="article.title" column="atitle"/>
+        <result property="article.abstractInfo" column="aabstractInfo"/>
+        <result property="article.content" column="acontent"/>
+        <result property="article.status" column="astatus"/>
+        <result property="article.reading" column="areading"/>
+        <result property="article.createTime" column="acreateTime"/>
+        <result property="article.updateTime" column="aupdateTime"/>
+        <collection property="tags" ofType="com.xiaobu.blog.model.Tag">
+            <id property="id" column="tid"/>
+            <id property="name" column="tname"/>
+        </collection>
+    </resultMap>
     <update id="_updateArticleStatusByIds">
         <if test="id_list.size > 0 and status != null">
             update sm_article

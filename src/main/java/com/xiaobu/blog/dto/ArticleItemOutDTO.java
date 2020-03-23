@@ -1,6 +1,7 @@
 package com.xiaobu.blog.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.xiaobu.blog.common.Const;
 import com.xiaobu.blog.common.Convert;
 import com.xiaobu.blog.model.Article;
 import lombok.Data;
@@ -25,16 +26,22 @@ public class ArticleItemOutDTO implements Convert<Article> {
 
     private Long reading;
 
-    @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss")
+    private String statusDescription;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
-    @JsonFormat(pattern = "yyyy-mm-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
     @Override
     public ArticleItemOutDTO toModel(Article article) {
-        ArticleItemOutDTO res = new ArticleItemOutDTO();
-        BeanUtils.copyProperties(article,res);
-        return res;
+        BeanUtils.copyProperties(article,this);
+        for (Const.ArticleStatus value : Const.ArticleStatus.values()) {
+            if(value.getCode() == article.getStatus()){
+                this.setStatusDescription(value.getMsg());
+            }
+        }
+        return this;
     }
 }
