@@ -1,7 +1,5 @@
 package com.xiaobu.blog.model.wrapper;
 
-import com.xiaobu.blog.common.Convert;
-import com.xiaobu.blog.dto.ArticleDetailOutDTO;
 import com.xiaobu.blog.model.Article;
 import com.xiaobu.blog.model.Tag;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.xiaobu.blog.common;
+package com.xiaobu.blog.dto;
 
 /**
  * 转换器，实现转换器的类可以将自身转换为实体类

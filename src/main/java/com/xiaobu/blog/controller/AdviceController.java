@@ -3,6 +3,7 @@ package com.xiaobu.blog.controller;
 import com.xiaobu.blog.common.Response;
 import com.xiaobu.blog.common.exception.AdminUserException;
 import com.xiaobu.blog.common.exception.ArticleException;
+import com.xiaobu.blog.common.exception.TokenGetException;
 import com.xiaobu.blog.common.exception.ValidationException;
 import com.xiaobu.blog.util.BindingResultUtil;
 import org.springframework.validation.BindingResult;
@@ -43,6 +44,9 @@ public class AdviceController {
      */
     @ExceptionHandler({AdminUserException.class})
     public Response handlerAdminUserException(AdminUserException ex) {
+        if(ex instanceof TokenGetException){
+            return Response.newFailInstance(HttpServletResponse.SC_FORBIDDEN,ex.getMessage());
+        }
         return Response.newFailInstance(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
     }
 }

@@ -1,6 +1,7 @@
 package com.xiaobu.blog.aspect;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xiaobu.blog.util.JsonUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -77,12 +78,11 @@ public class RequestJsonParamAspect {
         }
 
         Object obj = null;
-        try {
-            obj = new ObjectMapper().readValue(json, clazz);
-            args[index + 1] = obj;
-        } catch (Exception e) {
+        obj = JsonUtil.stringToObject(json, clazz);
+        if(obj == null){
             throw new RuntimeException("@GetTypeWithJson 使用错误,无法将 Json 反序列化.");
         }
+        args[index + 1] = obj;
 
         // 4. 检查是否需要校验参数
         if (args.length > index + 2 && Objects.equals(args[index + 2].getClass(), BeanPropertyBindingResult.class)) {

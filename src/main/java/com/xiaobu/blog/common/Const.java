@@ -7,17 +7,13 @@ package com.xiaobu.blog.common;
  */
 public class Const {
 
-
-    public static final String  USER = "user";
-
+    public static final String TOKEN = "auth-token";
 
     // 文章状态
     public enum ArticleStatus{
         PUBLISHED(1001,"已发布"),
         NOT_PUBLISHED(1002,"未发布"),
-        DELETED(1003,"已删除"),
-        TOP(1004,"置顶中"),
-        DRAFT(1005,"草稿");
+        DELETED(1003,"已删除");
 
         int code;
         String msg;
@@ -41,19 +37,6 @@ public class Const {
 
         public void setMsg(String msg) {
             this.msg = msg;
-        }
-    }
-
-
-    // 排序规则
-    public enum SORT{
-        ESC("esc"),
-        DESC("desc");
-
-        private String sort;
-
-        SORT(String sort) {
-            this.sort = sort;
         }
     }
 

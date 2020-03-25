@@ -1,5 +1,7 @@
 package com.xiaobu.blog;
 
+import com.xiaobu.blog.common.exception.ExpiresTokenException;
+import com.xiaobu.blog.common.exception.IllegalTokenException;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.Response;
 import com.xiaobu.blog.common.page.Sort;
@@ -9,11 +11,13 @@ import com.xiaobu.blog.model.Article;
 import com.xiaobu.blog.model.ArticleExample;
 import com.xiaobu.blog.service.ArticleService;
 import com.xiaobu.blog.util.MD5Util;
+import com.xiaobu.blog.util.TokenUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 @SpringBootTest
@@ -156,6 +160,15 @@ class BlogApplicationTests {
     void testMD5(){
         String s = MD5Util.getMD5String("**");
         System.out.println(s);
+    }
+
+    @Test
+    void testToken() throws ExpiresTokenException, IllegalTokenException {
+        String token = TokenUtil.getToken();
+        System.out.println(token);
+
+        TokenUtil.checkToken(token);
+
     }
 }
 

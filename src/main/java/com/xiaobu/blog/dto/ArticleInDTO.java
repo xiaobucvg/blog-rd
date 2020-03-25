@@ -1,7 +1,6 @@
 package com.xiaobu.blog.dto;
 
 import com.xiaobu.blog.common.Const;
-import com.xiaobu.blog.common.Convert;
 import com.xiaobu.blog.model.Article;
 import com.xiaobu.blog.model.Tag;
 import com.xiaobu.blog.model.wrapper.ArticleWithTag;
