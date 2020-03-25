@@ -20,6 +20,22 @@ public class ArticleController {
     @Autowired
     private ArticleService articleService;
 
+    /** 获取文章详细数据 */
+    @GetMapping("/{id}")
+    public Response getDetailArticle(@PathVariable Long id){
+        return articleService.getDetailArticle(id);
+    }
+
+
+    @GetMapping("/hot-articles")
+    public Response getHotArticles(@RequestParam(value = "count", required = false) Integer count) {
+        if (count == null) {
+            count = 10;
+        }
+        return articleService.getHostArticles(count);
+    }
+
+
     /**
      * 分页查询
      */
@@ -52,7 +68,7 @@ public class ArticleController {
     /**
      * 分页获取某个标签下的文章
      */
-    @GetMapping("/{tagid}")
+    @GetMapping("/tag/{tagid}")
     @RequestJsonParamToObject(Pageable.class)
     public Response getTagArticles(@RequestParam("json") String json, Pageable pageable, BindingResult bindingResult, @PathVariable("tagid") Long tagid) {
         if (bindingResult.hasErrors()) {

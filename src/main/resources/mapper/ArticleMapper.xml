@@ -491,7 +491,7 @@
         select
         <include refid="Base_Column_List"/>
         from sm_article
-        where status != 1003
+        where status = 1001
         order by reading
         desc limit 0,#{count};
     </select>
@@ -654,6 +654,9 @@
             </trim>
             )
         </if>
+    </update>
+    <update id="_addReading">
+        update sm_article set reading = reading + 1 where id = #{id}
     </update>
 
     <!-- ============= 自定义查询 ============ -->

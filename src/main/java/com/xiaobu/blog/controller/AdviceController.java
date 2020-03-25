@@ -1,6 +1,7 @@
 package com.xiaobu.blog.controller;
 
 import com.xiaobu.blog.common.Response;
+import com.xiaobu.blog.common.exception.AdminUserException;
 import com.xiaobu.blog.common.exception.ArticleException;
 import com.xiaobu.blog.common.exception.ValidationException;
 import com.xiaobu.blog.util.BindingResultUtil;
@@ -34,6 +35,14 @@ public class AdviceController {
      */
     @ExceptionHandler({ArticleException.class})
     public Response handleValidateException(ArticleException ex) {
-        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage(),null);
+        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+    }
+
+    /**
+     * 处理权限异常
+     */
+    @ExceptionHandler({AdminUserException.class})
+    public Response handlerAdminUserException(AdminUserException ex) {
+        return Response.newFailInstance(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
     }
 }

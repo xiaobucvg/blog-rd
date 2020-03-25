@@ -14,7 +14,8 @@
 
         <javaClientGenerator type="XMLMAPPER" targetPackage="com.xiaobu.blog.mapper" targetProject="src/main/java"/>
 
-        <table tableName="sm_article" domainObjectName="Article" mapperName="ArticleMapper"/>
-        <table tableName="sm_tag" domainObjectName="Tag" mapperName="TagMapper"/>
+<!--        <table tableName="sm_article" domainObjectName="Article" mapperName="ArticleMapper"/>-->
+<!--        <table tableName="sm_tag" domainObjectName="Tag" mapperName="TagMapper"/>-->
+        <table tableName="sm_admin" domainObjectName="AdminUser" mapperName="AdminUserMapper"/>
     </context>
 </generatorConfiguration>

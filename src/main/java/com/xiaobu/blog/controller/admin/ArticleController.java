@@ -54,16 +54,6 @@ public class ArticleController {
         return articleService.changeArticleStatus(ids, Const.ArticleStatus.DELETED.getCode());
     }
 
-
-    @GetMapping("/hot-articles")
-    public Response getHotArticles(@RequestParam(value = "count", required = false) Integer count) {
-        if (count == null) {
-            count = 10;
-        }
-        return articleService.getHostArticles(count);
-    }
-
-
     @GetMapping("/{id}")
     public Response getDetailArticle(@PathVariable Long id){
         return articleService.getDetailArticle(id);

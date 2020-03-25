@@ -16,6 +16,7 @@ import com.xiaobu.blog.model.Tag;
 import com.xiaobu.blog.model.TagExample;
 import com.xiaobu.blog.model.wrapper.ArticleWithTag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -215,13 +216,20 @@ public class ArticleService {
     /**
      * 获取文章详细信息
      */
-    public Response getDetailArticle(Long id) {
+    public Response getDetailArticle(long id) {
         ArticleWithTag articleWithTag = articleMapper._selectArticleWithTag(id);
         if (articleWithTag != null) {
             ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().toModel(articleWithTag);
+            this.addReading(id);
             return Response.newSuccessInstance("获取详细信息成功", articleDetailOutDTO);
         }
         throw new ArticleException("没有找到文章");
+    }
+
+    /** 异步的增加访问量 */
+    @Async
+    void addReading(long id){
+        articleMapper._addReading(id);
     }
 
     // ====================== 前台 ====================== //

@@ -52,4 +52,8 @@ public class Response {
     public static Response newFailInstance(int code, String msg, Object data) {
         return newInstance(false, code, msg, data);
     }
+
+    public static Response newFailInstance(int code, String msg) {
+        return newInstance(false, code, msg, null);
+    }
 }

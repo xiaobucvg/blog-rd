@@ -8,6 +8,9 @@ package com.xiaobu.blog.common;
 public class Const {
 
 
+    public static final String  USER = "user";
+
+
     // 文章状态
     public enum ArticleStatus{
         PUBLISHED(1001,"已发布"),

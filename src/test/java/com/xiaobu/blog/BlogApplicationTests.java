@@ -8,6 +8,7 @@ import com.xiaobu.blog.mapper.ArticleMapper;
 import com.xiaobu.blog.model.Article;
 import com.xiaobu.blog.model.ArticleExample;
 import com.xiaobu.blog.service.ArticleService;
+import com.xiaobu.blog.util.MD5Util;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -150,4 +151,11 @@ class BlogApplicationTests {
 
         articleService.getTagServices(pageable,53L);
     }
+
+    @Test
+    void testMD5(){
+        String s = MD5Util.getMD5String("**");
+        System.out.println(s);
+    }
 }
+
