@@ -35,7 +35,7 @@ public class TagService {
         // 3. 封装返回
         Page page = Page.createPage(pageable, count, tagOutDTOS);
 
-        return Response.newSuccessInstance("获取标签成功",page);
+        return Response.newSuccessInstance("获取标签记录成功",page);
 
     }
 

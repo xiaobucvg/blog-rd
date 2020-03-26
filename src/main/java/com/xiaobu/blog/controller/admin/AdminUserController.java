@@ -26,6 +26,7 @@ public class AdminUserController {
 
     /**
      * 获取 Token
+     * /admin/token?username=""&password=""
      */
     @GetMapping("/token")
     public Response getToken(@RequestParam String username, @RequestParam String password, HttpSession session) {
@@ -34,6 +35,7 @@ public class AdminUserController {
 
     /**
      * 获取用户信息
+     * /admin/user
      */
     @GetMapping("/user")
     public Response getAdminInfo(HttpServletRequest request) {

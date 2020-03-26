@@ -1,10 +1,10 @@
 package com.xiaobu.blog.controller;
 
 import com.xiaobu.blog.common.Response;
-import com.xiaobu.blog.common.exception.AdminUserException;
-import com.xiaobu.blog.common.exception.ArticleException;
-import com.xiaobu.blog.common.exception.TokenGetException;
-import com.xiaobu.blog.common.exception.ValidationException;
+import com.xiaobu.blog.exception.AdminUserException;
+import com.xiaobu.blog.exception.ArticleException;
+import com.xiaobu.blog.exception.TokenGetException;
+import com.xiaobu.blog.exception.ValidationException;
 import com.xiaobu.blog.util.BindingResultUtil;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,10 +19,10 @@ import java.util.Map;
  * @author zh  --2020/3/18 16:48
  */
 @RestControllerAdvice
-public class AdviceController {
+public class ExceptionAdviceController {
 
     /**
-     * 处理字段验证异常
+     * 字段验证异常处理器
      */
     @ExceptionHandler({ValidationException.class})
     public Response handleValidateException(ValidationException ex) {
@@ -32,7 +32,7 @@ public class AdviceController {
     }
 
     /**
-     * 处理文章相关异常
+     * 文章相关异常处理器
      */
     @ExceptionHandler({ArticleException.class})
     public Response handleValidateException(ArticleException ex) {
@@ -40,13 +40,21 @@ public class AdviceController {
     }
 
     /**
-     * 处理权限异常
+     * 权限异常处理器
      */
     @ExceptionHandler({AdminUserException.class})
-    public Response handlerAdminUserException(AdminUserException ex) {
-        if(ex instanceof TokenGetException){
-            return Response.newFailInstance(HttpServletResponse.SC_FORBIDDEN,ex.getMessage());
+    public Response handleAdminUserException(AdminUserException ex) {
+        if (ex instanceof TokenGetException) {
+            return Response.newFailInstance(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
         }
         return Response.newFailInstance(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
+    }
+
+    /**
+     * 统一异常处理器
+     */
+    @ExceptionHandler({Exception.class})
+    public Response handleException(Exception ex) {
+        return Response.newFailInstance(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"发生内部错误");
     }
 }

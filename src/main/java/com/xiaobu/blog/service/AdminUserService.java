@@ -1,7 +1,7 @@
 package com.xiaobu.blog.service;
 
 import com.xiaobu.blog.common.Response;
-import com.xiaobu.blog.common.exception.TokenGetException;
+import com.xiaobu.blog.exception.TokenGetException;
 import com.xiaobu.blog.dto.UserOutDTO;
 import com.xiaobu.blog.mapper.AdminUserMapper;
 import com.xiaobu.blog.model.AdminUser;

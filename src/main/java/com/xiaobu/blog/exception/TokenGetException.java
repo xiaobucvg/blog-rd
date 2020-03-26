@@ -1,4 +1,4 @@
-package com.xiaobu.blog.common.exception;
+package com.xiaobu.blog.exception;
 
 /**
  * 获取 Token 异常

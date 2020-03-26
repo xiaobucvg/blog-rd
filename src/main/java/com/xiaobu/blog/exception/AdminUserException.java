@@ -1,4 +1,4 @@
-package com.xiaobu.blog.common.exception;
+package com.xiaobu.blog.exception;
 
 /**
  * @author zh  --2020/3/23 10:22

@@ -2,12 +2,12 @@ package com.xiaobu.blog.service;
 
 import com.xiaobu.blog.common.Const;
 import com.xiaobu.blog.common.Response;
-import com.xiaobu.blog.common.exception.ArticleException;
 import com.xiaobu.blog.common.page.Page;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.dto.ArticleDetailOutDTO;
 import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.dto.ArticleItemOutDTO;
+import com.xiaobu.blog.exception.ArticleException;
 import com.xiaobu.blog.mapper.ArticleMapper;
 import com.xiaobu.blog.mapper.TagMapper;
 import com.xiaobu.blog.model.Article;
@@ -20,8 +20,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -120,7 +118,7 @@ public class ArticleService {
      */
     public Response getHostArticles(int count) {
         List<Article> articles = articleMapper._selectHotArticles(count);
-        return Response.newSuccessInstance("获取文章记录成功!", convertArticleBatch(articles));
+        return Response.newSuccessInstance("获取热门文章记录成功!", convertArticleBatch(articles));
     }
 
     /**
@@ -226,9 +224,11 @@ public class ArticleService {
         throw new ArticleException("没有找到文章");
     }
 
-    /** 异步的增加访问量 */
+    /**
+     * 异步的增加访问量
+     */
     @Async
-    void addReading(long id){
+    void addReading(long id) {
         articleMapper._addReading(id);
     }
 
@@ -272,12 +272,6 @@ public class ArticleService {
 
     /**
      * 归档查询
-     * {
-     * date:[
-     * {}，
-     * {}，
-     * ]
-     * }
      * 1. 先把所有月份查出来
      * 2. 根据月份查询每个月的文章
      * 3. 将其组装
@@ -306,24 +300,24 @@ public class ArticleService {
 
         Page page = Page.createPage(pageable, archiveCount, res);
 
-        return Response.newSuccessInstance("获取成功", page);
+        return Response.newSuccessInstance("获取归档记录成功", page);
     }
 
 
     /**
      * 分页获取标签下的文章
      */
-    public Response getTagServices(Pageable pageable, Long tagid) {
+    public Response getPublishedArticlesByTagID(Pageable pageable, Long tagId) {
         pageable.calculate();
         // 1. 获取数量
-        long count = tagMapper._selectArticlesCount(tagid);
+        long count = tagMapper._selectArticlesCount(tagId);
 
         // 2. 查询具体数据
-        List<Article> articles = articleMapper._selectPublishedArticlesByTag(tagid, pageable);
+        List<Article> articles = articleMapper._selectPublishedArticlesByTag(tagId, pageable);
         List<ArticleItemOutDTO> articleItemOutDTOS = convertArticleBatch(articles);
         // 3. 封装返回
         Page page = Page.createPage(pageable, count, articleItemOutDTOS);
 
-        return Response.newSuccessInstance("获取文章成功", page);
+        return Response.newSuccessInstance("获取标签ID为" + tagId + "的文章记录成功", page);
     }
 }

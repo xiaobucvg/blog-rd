@@ -1,8 +1,8 @@
 package com.xiaobu.blog.util;
 
 import com.xiaobu.blog.common.Token;
-import com.xiaobu.blog.common.exception.ExpiresTokenException;
-import com.xiaobu.blog.common.exception.IllegalTokenException;
+import com.xiaobu.blog.exception.ExpiresTokenException;
+import com.xiaobu.blog.exception.IllegalTokenException;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Mac;

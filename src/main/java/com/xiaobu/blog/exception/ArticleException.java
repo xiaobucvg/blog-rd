@@ -1,4 +1,4 @@
-package com.xiaobu.blog.common.exception;
+package com.xiaobu.blog.exception;
 
 /**
  * 文章相关异常

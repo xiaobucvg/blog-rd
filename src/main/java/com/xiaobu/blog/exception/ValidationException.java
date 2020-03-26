@@ -1,4 +1,4 @@
-package com.xiaobu.blog.common.exception;
+package com.xiaobu.blog.exception;
 
 import lombok.Data;
 import org.springframework.validation.BindingResult;
