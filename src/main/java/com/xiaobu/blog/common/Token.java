@@ -1,5 +1,6 @@
 package com.xiaobu.blog.common;
 
+import com.xiaobu.blog.util.InetUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,16 +20,17 @@ public class Token {
     String alg = "HmacSHA256";
 
     // token 体
-    String sub = "admin";
-
-    String iss = "http://101.201.122.174:8080/admin/token";
-
+    // 表明该 token 面向的用户
+    String sub = "";
+    // 签发机构
+    String iss = "http://" + InetUtil.getLocalHost() + ":8080/admin/token";
+    // 签发时间
     String iat = String.valueOf(new Date().getTime());
-
+    // 过期时间
     String exp;
-
+    // 在此时间之前不可使用
     String nbf = String.valueOf(new Date().getTime());
-
+    // 随机字符串
     String jti = UUID.randomUUID().toString();
 
     public Token(long time) {

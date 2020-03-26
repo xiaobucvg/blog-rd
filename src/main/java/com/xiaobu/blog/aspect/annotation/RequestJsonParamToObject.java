@@ -1,4 +1,4 @@
-package com.xiaobu.blog.aspect;
+package com.xiaobu.blog.aspect.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,4 +17,6 @@ import java.lang.annotation.Target;
 public @interface RequestJsonParamToObject {
     // 要反序列化的对象类型,必须提供
     Class<?> value();
+    // 是否需要校验参数合法性
+    boolean needValidate() default true;
 }

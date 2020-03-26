@@ -12,5 +12,3 @@ mybatis:
     map-underscore-to-camel-case: true
     default-fetch-size: 100
     default-statement-timeout: 30
-  level:
-    com.xiaobu.blog.mapper: debug

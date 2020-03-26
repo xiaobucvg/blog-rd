@@ -27,7 +27,7 @@ public class Pageable {
 
     /** 计算开始位置和结束位置 */
     public void calculate(){
-        int start = (this.startPage - 1) * this.count;
+         int start = (this.startPage - 1) * this.count;
         this.setStart(start);
         int end = this.count;
         this.setEnd(end);

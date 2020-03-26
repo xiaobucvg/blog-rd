@@ -35,6 +35,8 @@ public class ArticleService {
     @Autowired
     private ArticleMapper articleMapper;
 
+    // ====================== 后台 ====================== //
+
     /**
      * 更新文章
      * - 检查文章状态
@@ -126,8 +128,7 @@ public class ArticleService {
      * - 获取正常状态的文章总数量，计算分页
      * - 将结果用分页进行包装
      */
-    public Response getArticles(Pageable pageable) {
-        pageable.calculate();
+    public Response getArticles( Pageable pageable) {
 
         List<Article> articles = articleMapper._selectArticles(pageable);
 
@@ -198,8 +199,7 @@ public class ArticleService {
     /**
      * 分页搜索文章
      */
-    public Response searchArticle(Pageable pageable, String keywords) {
-        pageable.calculate();
+    public Response searchArticle( Pageable pageable, String keywords) {
         long articleCounts = articleMapper._countArticlesByKeywords(keywords);
 
         List<Article> articles = articleMapper._selectByKeywords(pageable, keywords);
@@ -237,8 +237,7 @@ public class ArticleService {
     /**
      * 分页获取已经发布的文章
      */
-    public Response getPublishedArticles(Pageable pageable) {
-        pageable.calculate();
+    public Response getPublishedArticles( Pageable pageable) {
 
         List<Article> articles = articleMapper._selectPublishedArticlesByPage(pageable);
 
@@ -256,8 +255,7 @@ public class ArticleService {
     /**
      * 分页搜索已经发布的文章
      */
-    public Response searchPublishedArticles(Pageable pageable, String keywords) {
-        pageable.calculate();
+    public Response searchPublishedArticles( Pageable pageable, String keywords) {
 
         long articleCounts = articleMapper._countPublisedArticlesByKeywords(keywords);
 
@@ -278,8 +276,6 @@ public class ArticleService {
      */
 
     public Response archiveArticles(Pageable pageable) {
-        pageable.calculate();
-
         // 查询总的归档数
         long archiveCount = articleMapper._selectArchiveCounts();
 
@@ -308,7 +304,6 @@ public class ArticleService {
      * 分页获取标签下的文章
      */
     public Response getPublishedArticlesByTagID(Pageable pageable, Long tagId) {
-        pageable.calculate();
         // 1. 获取数量
         long count = tagMapper._selectArticlesCount(tagId);
 

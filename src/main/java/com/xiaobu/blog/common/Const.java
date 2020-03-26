@@ -7,6 +7,7 @@ package com.xiaobu.blog.common;
  */
 public class Const {
 
+    // 请求头 token 对应的 key
     public static final String TOKEN = "auth-token";
 
     // 文章状态

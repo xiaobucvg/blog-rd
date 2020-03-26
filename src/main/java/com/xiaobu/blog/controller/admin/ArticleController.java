@@ -1,6 +1,7 @@
 package com.xiaobu.blog.controller.admin;
 
-import com.xiaobu.blog.aspect.RequestJsonParamToObject;
+import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
+import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
 import com.xiaobu.blog.common.Const;
 import com.xiaobu.blog.common.Response;
 import com.xiaobu.blog.common.page.Pageable;
@@ -74,6 +75,7 @@ public class ArticleController {
      */
     @GetMapping
     @RequestJsonParamToObject(Pageable.class)
+    @PageableAutoCalculate
     public Response searchArticle(
             @RequestParam("json") String json, Pageable pageable, BindingResult bindingResult,
             @RequestParam(value = "keywords", required = false) String keywords) {

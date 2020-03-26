@@ -53,6 +53,9 @@ public class Page {
         else if(collection instanceof List){
             page.setCount(((List) collection).size());
         }
+        else {
+            throw new RuntimeException("分页对象所包含的内容必须是一个集合或者 Map ");
+        }
         // 是否有前一页
         if (pageable.getStartPage() > 1) {
             page.setHasPrePage(true);

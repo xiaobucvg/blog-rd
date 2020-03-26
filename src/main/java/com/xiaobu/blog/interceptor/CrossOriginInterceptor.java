@@ -31,7 +31,7 @@ public class CrossOriginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Methods", "POST,PUT, GET, OPTIONS");
+        response.setHeader("Access-Control-Allow-Methods", "POST,PUT, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Allow-Headers", Const.TOKEN + ", Content-Type");
         response.setHeader("Access-Control-Max-Age", " 86400");
 

@@ -1,6 +1,7 @@
 package com.xiaobu.blog.controller;
 
-import com.xiaobu.blog.aspect.RequestJsonParamToObject;
+import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
+import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
 import com.xiaobu.blog.common.Response;
 import com.xiaobu.blog.exception.ValidationException;
 import com.xiaobu.blog.common.page.Pageable;
@@ -30,6 +31,7 @@ public class TagController {
      */
     @GetMapping
     @RequestJsonParamToObject(Pageable.class)
+    @PageableAutoCalculate
     public Response getTags(@RequestParam("json") String json, Pageable pageable, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult, "字段验证失败");

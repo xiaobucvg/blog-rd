@@ -1,6 +1,7 @@
 package com.xiaobu.blog.controller;
 
-import com.xiaobu.blog.aspect.RequestJsonParamToObject;
+import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
+import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
 import com.xiaobu.blog.common.Response;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.exception.ValidationException;
@@ -55,6 +56,7 @@ public class ArticleController {
      */
     @GetMapping
     @RequestJsonParamToObject(Pageable.class)
+    @PageableAutoCalculate
     public Response searchArticle(
             @RequestParam("json") String json, Pageable pageable, BindingResult bindingResult,
             @RequestParam(value = "keywords", required = false) String keywords,
@@ -80,6 +82,7 @@ public class ArticleController {
      */
     @GetMapping("/archives")
     @RequestJsonParamToObject(Pageable.class)
+    @PageableAutoCalculate
     public Response archiveArticle(@RequestParam("json") String json, Pageable pageable, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new ValidationException(bindingResult, "ArticleInDTO 字段验证失败");

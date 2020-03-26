@@ -6,3 +6,7 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/simple_blog?useSSL=false&useUnicode=true&characterEncoding=utf-8&serverTimezone=CTT&zeroDateTimeBehavior=convertToNull&autoReconnect=true
     username: admin
     password: 199711
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

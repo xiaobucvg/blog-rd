@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Article 和 Tag 的包装类
+ *
  * @author zh  --2020/3/18 13:40
  */
 @Data

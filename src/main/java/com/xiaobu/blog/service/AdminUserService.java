@@ -27,8 +27,8 @@ public class AdminUserService {
     /**
      * 获取用户信息
      */
-    public Response getUserInfo(long userid) {
-        AdminUser user = adminUserMapper.selectByPrimaryKey(userid);
+    public Response getUserInfo(long userId) {
+        AdminUser user = adminUserMapper.selectByPrimaryKey(userId);
         if (user == null) {
             return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, "没有用户");
         }
