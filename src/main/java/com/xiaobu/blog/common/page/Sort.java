@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * 排序对象
+ *
  * @author zh  --2020/3/18 20:47
  */
 @Data

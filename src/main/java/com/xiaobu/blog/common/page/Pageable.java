@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * 分页查询对象
+ *
  * @author zh  --2020/3/18 16:27
  */
 @Data

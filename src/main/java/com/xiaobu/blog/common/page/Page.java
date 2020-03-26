@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 分页包装对象
+ *
  * @author zh  --2020/3/18 16:30
  */
 @Data
