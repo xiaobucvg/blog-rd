@@ -89,4 +89,18 @@ public class ArticleController {
         // 有关键字
         return articleService.searchArticle(pageable, keywords);
     }
+
+    /**
+     * 分页查询所有被删除的文章
+     * /admin/articles/deleted-articles?json={}
+     */
+    @GetMapping("/deleted-articles")
+    @RequestJsonParamToObject(Pageable.class)
+    @PageableAutoCalculate
+    public Response searchDeletedArticles(@RequestParam("json") String json, Pageable pageable, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            throw new ValidationException(bindingResult, "ArticleInDTO 字段验证失败");
+        }
+        return articleService.getDeletedArticles(pageable);
+    }
 }

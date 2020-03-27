@@ -627,6 +627,19 @@
         </if>
         limit ${pageable.start},${pageable.end}
     </select>
+    <select id="_selectDeletedArticles" resultType="com.xiaobu.blog.model.Article">
+        select <include refid="Base_Column_List"/>
+        from sm_article
+        <if test="sorts != null and sorts.size > 0">
+            order by
+            <trim>
+                <foreach collection="sorts" item="sort" separator=",">
+                    ${sort.name} ${sort.rule}
+                </foreach>
+            </trim>
+        </if>
+        limit ${start},${end}
+    </select>
     <resultMap id="article_width_tag" type="com.xiaobu.blog.model.wrapper.ArticleWithTag">
         <id property="article.id" column="aid"/>
         <result property="article.title" column="atitle"/>

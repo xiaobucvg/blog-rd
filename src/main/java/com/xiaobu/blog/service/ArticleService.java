@@ -128,7 +128,7 @@ public class ArticleService {
      * - 获取正常状态的文章总数量，计算分页
      * - 将结果用分页进行包装
      */
-    public Response getArticles( Pageable pageable) {
+    public Response getArticles(Pageable pageable) {
 
         List<Article> articles = articleMapper._selectArticles(pageable);
 
@@ -199,7 +199,7 @@ public class ArticleService {
     /**
      * 分页搜索文章
      */
-    public Response searchArticle( Pageable pageable, String keywords) {
+    public Response searchArticle(Pageable pageable, String keywords) {
         long articleCounts = articleMapper._countArticlesByKeywords(keywords);
 
         List<Article> articles = articleMapper._selectByKeywords(pageable, keywords);
@@ -237,7 +237,7 @@ public class ArticleService {
     /**
      * 分页获取已经发布的文章
      */
-    public Response getPublishedArticles( Pageable pageable) {
+    public Response getPublishedArticles(Pageable pageable) {
 
         List<Article> articles = articleMapper._selectPublishedArticlesByPage(pageable);
 
@@ -255,7 +255,7 @@ public class ArticleService {
     /**
      * 分页搜索已经发布的文章
      */
-    public Response searchPublishedArticles( Pageable pageable, String keywords) {
+    public Response searchPublishedArticles(Pageable pageable, String keywords) {
 
         long articleCounts = articleMapper._countPublisedArticlesByKeywords(keywords);
 
@@ -314,5 +314,21 @@ public class ArticleService {
         Page page = Page.createPage(pageable, count, articleItemOutDTOS);
 
         return Response.newSuccessInstance("获取标签ID为" + tagId + "的文章记录成功", page);
+    }
+
+    /**
+     * 分页获取被删除的文章
+     */
+    public Response getDeletedArticles(Pageable pageable) {
+        // 1. 获取数量
+        ArticleExample articleExample = new ArticleExample();
+        articleExample.createCriteria().andStatusEqualTo(Const.ArticleStatus.DELETED.getCode());
+        long count = articleMapper.countByExample(articleExample);
+        // 2. 查询具体数据
+        List<Article> articles = articleMapper._selectDeletedArticles(pageable);
+        List<ArticleItemOutDTO> articleItemOutDTOS = convertArticleBatch(articles);
+        // 3. 封装返回
+        Page page = Page.createPage(pageable, count, articleItemOutDTOS);
+        return Response.newSuccessInstance("获取已删除的文章记录成功", page);
     }
 }

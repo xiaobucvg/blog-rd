@@ -13,15 +13,17 @@ import java.util.Map;
  */
 @Data
 public class Page {
-    private int pageCount;      // 总共有多少页
+    private Integer pageCount;      // 总共有多少页
 
-    private int currentPage;    // 当前页码
+    private Integer currentPage;    // 当前页码
 
-    private boolean hasPrePage; // 是否有前一页
+    private Boolean hasPrePage = false; // 是否有前一页
 
-    private boolean hasNextPage; // 是否有后一页
+    private Boolean hasNextPage = false; // 是否有后一页
 
-    private int count;          // 获取到的数量
+    private Integer count;          // 获取到的数量
+
+    private Long allCounts;      // 总的数量
 
     private Object list;        // 具体的内容
 
@@ -38,22 +40,21 @@ public class Page {
      */
     public static Page createPage(Pageable pageable, long counts, Object collection) {
         Page page = new Page();
+        page.setAllCounts(counts);
         // 计算总页数
         int pageCount = (int) counts / pageable.getCount();
-        if(counts % pageable.getCount() != 0){
-            pageCount ++;
+        if (counts % pageable.getCount() != 0) {
+            pageCount++;
         }
         page.setPageCount(pageCount);
         // 当前页码
         page.setCurrentPage(pageable.getStartPage());
         // 获取到的内容数量
-        if(collection instanceof Map){
+        if (collection instanceof Map) {
             page.setCount(((Map) collection).keySet().size());
-        }
-        else if(collection instanceof List){
+        } else if (collection instanceof List) {
             page.setCount(((List) collection).size());
-        }
-        else {
+        } else {
             throw new RuntimeException("分页对象所包含的内容必须是一个集合或者 Map ");
         }
         // 是否有前一页
