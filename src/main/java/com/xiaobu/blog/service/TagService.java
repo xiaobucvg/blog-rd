@@ -1,6 +1,6 @@
 package com.xiaobu.blog.service;
 
-import com.xiaobu.blog.common.Response;
+import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.common.page.Page;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.dto.TagOutDTO;

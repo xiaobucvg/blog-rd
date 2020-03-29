@@ -1,8 +1,9 @@
 package com.xiaobu.blog.controller;
 
+import com.xiaobu.blog.aspect.annotation.Log;
 import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
 import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
-import com.xiaobu.blog.common.Response;
+import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.exception.ValidationException;
 import com.xiaobu.blog.service.ArticleService;

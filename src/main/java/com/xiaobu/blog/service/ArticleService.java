@@ -1,7 +1,8 @@
 package com.xiaobu.blog.service;
 
+import com.xiaobu.blog.aspect.annotation.Log;
 import com.xiaobu.blog.common.Const;
-import com.xiaobu.blog.common.Response;
+import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.common.page.Page;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.dto.ArticleDetailOutDTO;
@@ -44,6 +45,7 @@ public class ArticleService {
      * - 更新文章
      * - 处理中间表
      */
+    @Log("更新了文章")
     @Transactional
     public Response updateArticle(ArticleInDTO articleInDTO) {
         ArticleWithTag articleWithTag = articleInDTO.toModel();
@@ -77,6 +79,7 @@ public class ArticleService {
      * - 插入 article
      * - 处理中间表
      */
+    @Log("创建了新文章")
     @Transactional
     public Response saveArticle(ArticleInDTO articleInDTO) {
         // 必须去掉 ID
@@ -159,6 +162,7 @@ public class ArticleService {
      * - 验证 ID 合法性
      * - 文章改变状态
      */
+    @Log("修改了文章状态")
     public Response changeArticleStatus(String ids, int status) {
         if (!this.checkStatusCode(status)) {
             throw new ArticleException("修改文章状态失败!要修改的状态不存在");
@@ -330,5 +334,31 @@ public class ArticleService {
         // 3. 封装返回
         Page page = Page.createPage(pageable, count, articleItemOutDTOS);
         return Response.newSuccessInstance("获取已删除的文章记录成功", page);
+    }
+
+    /**
+     * 批量删除删除状态的文章
+     * 如果没有指定 ids ，删除全部删除状态的文章
+     * - 删除中间表相关数据
+     * - 删除文章表
+     */
+    @Transactional
+    public Response deleteArticles(String ids) {
+        // 查出所有符合删除条件的文章
+        ArticleExample example = new ArticleExample();
+        ArticleExample.Criteria criteria = example.createCriteria().andStatusEqualTo(Const.ArticleStatus.DELETED.getCode());
+        if (ids != null) {
+            List idList = this.splitIds(ids);
+            criteria.andIdIn(idList);
+        }
+        List<Article> articles = articleMapper.selectByExample(example);
+        if (articles != null && articles.size() > 0) {
+            // 处理中间表
+            articleMapper._deleteTagsByArticles(articles);
+
+            // 处理文章
+            articleMapper.deleteByExample(example);
+        }
+        return Response.newSuccessInstance("删除了" + articles.size() + "篇文章");
     }
 }

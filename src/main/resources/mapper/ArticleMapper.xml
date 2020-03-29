@@ -487,6 +487,18 @@
         where article_id = ${id}
     </delete>
 
+    <delete id="_deleteTagsByArticles" parameterType="list">
+        <if test="list != null and list.size > 0">
+            delete from sm_article__tag
+            where article_id in
+            (
+                <foreach collection="list" separator="," item="article">
+                    #{article.id}
+                </foreach>
+            )
+        </if>
+    </delete>
+
     <select id="_selectHotArticles" resultType="com.xiaobu.blog.model.Article" parameterType="int">
         select
         <include refid="Base_Column_List"/>
@@ -628,7 +640,8 @@
         limit ${pageable.start},${pageable.end}
     </select>
     <select id="_selectDeletedArticles" resultType="com.xiaobu.blog.model.Article">
-        select <include refid="Base_Column_List"/>
+        select
+        <include refid="Base_Column_List"/>
         from sm_article
         <if test="sorts != null and sorts.size > 0">
             order by
@@ -669,7 +682,9 @@
         </if>
     </update>
     <update id="_addReading">
-        update sm_article set reading = reading + 1 where id = #{id}
+        update sm_article
+        set reading = reading + 1
+        where id = #{id}
     </update>
 
     <!-- ============= 自定义查询 ============ -->

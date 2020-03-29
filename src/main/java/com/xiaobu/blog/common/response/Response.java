@@ -1,4 +1,4 @@
-package com.xiaobu.blog.common;
+package com.xiaobu.blog.common.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;

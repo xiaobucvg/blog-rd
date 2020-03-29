@@ -16,6 +16,7 @@
 
 <!--        <table tableName="sm_article" domainObjectName="Article" mapperName="ArticleMapper"/>-->
 <!--        <table tableName="sm_tag" domainObjectName="Tag" mapperName="TagMapper"/>-->
-        <table tableName="sm_admin" domainObjectName="AdminUser" mapperName="AdminUserMapper"/>
+<!--        <table tableName="sm_admin" domainObjectName="AdminUser" mapperName="AdminUserMapper"/>-->
+        <table tableName="sm_log" domainObjectName="Log" mapperName="LogMapper"/>
     </context>
 </generatorConfiguration>

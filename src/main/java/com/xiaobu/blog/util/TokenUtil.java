@@ -1,6 +1,6 @@
 package com.xiaobu.blog.util;
 
-import com.xiaobu.blog.common.Token;
+import com.xiaobu.blog.common.token.Token;
 import com.xiaobu.blog.exception.ExpiresTokenException;
 import com.xiaobu.blog.exception.IllegalTokenException;
 import lombok.extern.slf4j.Slf4j;

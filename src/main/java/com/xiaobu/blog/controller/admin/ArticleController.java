@@ -2,8 +2,7 @@ package com.xiaobu.blog.controller.admin;
 
 import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
 import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
-import com.xiaobu.blog.common.Const;
-import com.xiaobu.blog.common.Response;
+import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.exception.ValidationException;
@@ -42,6 +41,7 @@ public class ArticleController {
         }
     }
 
+
     /**
      * 批量改变状态
      * /admin/articles?ids=""&statusCode=1 PUT
@@ -49,15 +49,6 @@ public class ArticleController {
     @PutMapping
     public Response changeArticleStatus(@RequestParam("ids") String ids, @RequestParam("statusCode") int statusCode) {
         return articleService.changeArticleStatus(ids, statusCode);
-    }
-
-    /**
-     * 批量删除
-     * /admin/articles?ids="" DELETE
-     */
-    @DeleteMapping
-    public Response deleteArticle(@RequestParam("ids") String ids) {
-        return articleService.changeArticleStatus(ids, Const.ArticleStatus.DELETED.getCode());
     }
 
     /**
@@ -103,4 +94,13 @@ public class ArticleController {
         }
         return articleService.getDeletedArticles(pageable);
     }
+
+    /**
+     * 批量删除文章
+     */
+    @DeleteMapping
+    public Response deleteArticles(@RequestParam(required = false) String ids) {
+        return articleService.deleteArticles(ids);
+    }
+
 }

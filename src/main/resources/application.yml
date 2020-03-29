@@ -1,4 +1,4 @@
-# 默认启用开发环境
+# 默认启用的开发环境
 spring:
   profiles:
     active: dev

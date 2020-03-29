@@ -1,6 +1,6 @@
 package com.xiaobu.blog.controller;
 
-import com.xiaobu.blog.common.Response;
+import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.exception.AdminUserException;
 import com.xiaobu.blog.exception.ArticleException;
 import com.xiaobu.blog.exception.TokenGetException;

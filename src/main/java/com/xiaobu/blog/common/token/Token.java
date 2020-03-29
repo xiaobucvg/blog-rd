@@ -1,4 +1,4 @@
-package com.xiaobu.blog.common;
+package com.xiaobu.blog.common.token;
 
 import com.xiaobu.blog.util.InetUtil;
 import lombok.Data;
