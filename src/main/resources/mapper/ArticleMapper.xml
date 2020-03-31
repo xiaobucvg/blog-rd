@@ -643,6 +643,7 @@
         select
         <include refid="Base_Column_List"/>
         from sm_article
+        where status = 1003
         <if test="sorts != null and sorts.size > 0">
             order by
             <trim>

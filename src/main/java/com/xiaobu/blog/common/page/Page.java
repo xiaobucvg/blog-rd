@@ -21,9 +21,11 @@ public class Page {
 
     private Boolean hasNextPage = false; // 是否有后一页
 
-    private Integer count;          // 获取到的数量
+    private Integer count;          // 实际获取的数量
 
     private Long allCounts;      // 总的数量
+
+    private Integer hopeCount;   // 希望获取的数量
 
     private Object list;        // 具体的内容
 
@@ -41,6 +43,7 @@ public class Page {
     public static Page createPage(Pageable pageable, long counts, Object collection) {
         Page page = new Page();
         page.setAllCounts(counts);
+        page.setHopeCount(pageable.getCount());
         // 计算总页数
         int pageCount = (int) counts / pageable.getCount();
         if (counts % pageable.getCount() != 0) {

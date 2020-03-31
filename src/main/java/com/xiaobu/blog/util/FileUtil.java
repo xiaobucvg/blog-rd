@@ -16,6 +16,9 @@ import java.nio.file.Paths;
  */
 public class FileUtil {
 
+    private FileUtil() {
+    }
+
     /**
      * 获取目录
      * 如果没有则创建

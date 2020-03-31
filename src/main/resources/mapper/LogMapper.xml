@@ -295,7 +295,7 @@
             order by
             <trim>
                 <foreach collection="sorts" item="sort" separator=",">
-                    #{sort.name} #{sort.rule}
+                    ${sort.name} ${sort.rule}
                 </foreach>
             </trim>
         </if>

@@ -236,6 +236,49 @@ public class ArticleService {
         articleMapper._addReading(id);
     }
 
+    /**
+     * 分页获取被删除的文章
+     */
+    public Response getDeletedArticles(Pageable pageable) {
+        // 1. 获取数量
+        ArticleExample articleExample = new ArticleExample();
+        articleExample.createCriteria().andStatusEqualTo(Const.ArticleStatus.DELETED.getCode());
+        long count = articleMapper.countByExample(articleExample);
+        // 2. 查询具体数据
+        List<Article> articles = articleMapper._selectDeletedArticles(pageable);
+        List<ArticleItemOutDTO> articleItemOutDTOS = convertArticleBatch(articles);
+        // 3. 封装返回
+        Page page = Page.createPage(pageable, count, articleItemOutDTOS);
+        return Response.newSuccessInstance("获取已删除的文章记录成功", page);
+    }
+
+    /**
+     * 批量删除删除状态的文章
+     * 如果没有指定 ids ，删除全部删除状态的文章
+     * - 删除中间表相关数据
+     * - 删除文章表
+     */
+    @Log("删除了文章")
+    @Transactional
+    public Response deleteArticles(String ids) {
+        // 查出所有符合删除条件的文章
+        ArticleExample example = new ArticleExample();
+        ArticleExample.Criteria criteria = example.createCriteria().andStatusEqualTo(Const.ArticleStatus.DELETED.getCode());
+        if (ids != null) {
+            List idList = this.splitIds(ids);
+            criteria.andIdIn(idList);
+        }
+        List<Article> articles = articleMapper.selectByExample(example);
+        if (articles != null && articles.size() > 0) {
+            // 处理中间表
+            articleMapper._deleteTagsByArticles(articles);
+
+            // 处理文章
+            articleMapper.deleteByExample(example);
+        }
+        return Response.newSuccessInstance("删除了" + articles.size() + "篇文章");
+    }
+
     // ====================== 前台 ====================== //
 
     /**
@@ -320,45 +363,5 @@ public class ArticleService {
         return Response.newSuccessInstance("获取标签ID为" + tagId + "的文章记录成功", page);
     }
 
-    /**
-     * 分页获取被删除的文章
-     */
-    public Response getDeletedArticles(Pageable pageable) {
-        // 1. 获取数量
-        ArticleExample articleExample = new ArticleExample();
-        articleExample.createCriteria().andStatusEqualTo(Const.ArticleStatus.DELETED.getCode());
-        long count = articleMapper.countByExample(articleExample);
-        // 2. 查询具体数据
-        List<Article> articles = articleMapper._selectDeletedArticles(pageable);
-        List<ArticleItemOutDTO> articleItemOutDTOS = convertArticleBatch(articles);
-        // 3. 封装返回
-        Page page = Page.createPage(pageable, count, articleItemOutDTOS);
-        return Response.newSuccessInstance("获取已删除的文章记录成功", page);
-    }
 
-    /**
-     * 批量删除删除状态的文章
-     * 如果没有指定 ids ，删除全部删除状态的文章
-     * - 删除中间表相关数据
-     * - 删除文章表
-     */
-    @Transactional
-    public Response deleteArticles(String ids) {
-        // 查出所有符合删除条件的文章
-        ArticleExample example = new ArticleExample();
-        ArticleExample.Criteria criteria = example.createCriteria().andStatusEqualTo(Const.ArticleStatus.DELETED.getCode());
-        if (ids != null) {
-            List idList = this.splitIds(ids);
-            criteria.andIdIn(idList);
-        }
-        List<Article> articles = articleMapper.selectByExample(example);
-        if (articles != null && articles.size() > 0) {
-            // 处理中间表
-            articleMapper._deleteTagsByArticles(articles);
-
-            // 处理文章
-            articleMapper.deleteByExample(example);
-        }
-        return Response.newSuccessInstance("删除了" + articles.size() + "篇文章");
-    }
 }
