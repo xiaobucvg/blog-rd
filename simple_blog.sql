@@ -18,8 +18,7 @@ create table sm_article
     status        int      default 1002              not null comment '1001 发布中
 1002 未发布
 1003 已删除
-1004 置顶
-1005 草稿',
+',
     title         char(50)                           not null comment '不能超过50个字符',
     abstract_info char(255)                          not null,
     content       longtext                           not null,
@@ -34,6 +33,18 @@ create table sm_article
 
 create fulltext index article_full_index
     on sm_article (title, abstract_info, content);
+
+create table sm_log
+(
+    id          bigint auto_increment
+        primary key,
+    ip          char(15)                           not null comment 'IP 地址',
+    msg         char(100)                          not null comment '操作记录',
+    create_time datetime default CURRENT_TIMESTAMP not null comment '操作时间',
+    update_time datetime default CURRENT_TIMESTAMP not null comment '更新时间
+'
+)
+    comment '操作记录';
 
 create table sm_tag
 (

@@ -29,11 +29,44 @@
 
 ## 后续工作
 
- - 增加管理员/博客导航/回收站功能
+ - ~~增加管理员/博客导航/回收站功能~~
  - 优化 token 鉴权方式
- - 完成接口文档
+ - ~~完成接口文档~~
  - 解析每个模块功能
  
+## 重要功能介绍
+
+**跨域问题**
+使用 Spring 的 FilterRegistrationBean 注册 CORSFilter，匹配所有路径。
+
+**登录问题**
+没有使用 Session，而是实现了一个简单的 Token 机制。虽然在这种简单项目中使用 Token 有点多此一举。
+
+**GET 方式下的复杂查询**
+RESTful 风格的 API ，存在资源的获取都使用 GET 方式的规范，对于多种不同的查询，使用同一个接口，于是存在一个复杂查询参数的问题。
+Spring 本身支持 GET 方式接收 RequestBody ,可以直接将查询参数放到请求体中，但是一些前端网络请求库可能并不支持使用 GET 方式发送请求体，
+于是放弃在 GET 请求中接收 RequestBody，改用 RequestParam 的方式获取路径上的查询参数。
+过程：
+前端将查询参数对象转换为 json 格式，放到路径中传递；
+后端接收到 json 格式的查询参数，反序列化后作为查询标准；
+由于许多地方都用这种形式的查询，所以采用切面的形式简化代码编写。
+定义注解 ： @RequestJsonParam
+定义切面 ： RequestJsonParamAspect
+切面作用，拦截所有注解了 @RequestJsonParam 的方法，将 json 参数序列化位对象，并可以对序列化后的字段进行校验。 
+
+**分页查询对象与分页包装对象**
+项目中采用手写分页的形式。
+定义分页查询对象 ：Pageable
+定义分页包装对象 ：Page
+分页自动计算注解 ：@PageableAutoCalculate
+Pageable 配合 @RequestJsonParam，@PageableAutoCalculate 对象配合使用，可以简单的完成分页参数的接收。
+
+**操作记录**
+记录一些重要的后台操作。
+定义注解 ：@Log
+定义切面 : LogAspect
+切面作用，拦截所有注解了 @Log 的方法， 异步的将本次请求的 IP 地址和做的操作存到数据库中。 
+
 ## 维护者
     
 [@xiaobucvg](https://github.com/xiaobucvg)
