@@ -1,5 +1,6 @@
 package com.xiaobu.blog.dto;
 
+import com.xiaobu.blog.exception.AdminUserException;
 import com.xiaobu.blog.model.AdminUser;
 import com.xiaobu.blog.util.FileUtil;
 import com.xiaobu.blog.util.InetUtil;
@@ -7,10 +8,8 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
+import java.net.SocketException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * @author zh  --2020/3/29 9:49
@@ -45,7 +44,12 @@ public class UserInDTO implements Convert<AdminUser> {
             // 写入数据
             FileUtil.write(avatar, this.getAvatarFile());
 
-            user.setAvatar("http://" + InetUtil.getLocalHost() + "/user/avatar.jpg");
+            try {
+                user.setAvatar("http://" + InetUtil.getRealIp() + "/user/avatar.jpg");
+            } catch (SocketException e) {
+                e.printStackTrace();
+                throw new AdminUserException("存储头像失败");
+            }
         }
 
         return user;

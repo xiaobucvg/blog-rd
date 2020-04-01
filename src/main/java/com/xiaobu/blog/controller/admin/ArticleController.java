@@ -122,7 +122,7 @@ public class ArticleController {
             String imgName = UUID.randomUUID() + imgFile.getOriginalFilename();
             Path imgPath = FileUtil.getFile(imgName, dir);
             FileUtil.write(imgPath, imgFile);
-            return Response.newSuccessInstance("上传成功", "http://" + InetUtil.getLocalHost() + ":8080/articles/imgs/" + imgName);
+            return Response.newSuccessInstance("上传成功", "http://" + InetUtil.getRealIp() + ":8080/articles/imgs/" + imgName);
         } catch (Exception e) {
             throw new ArticleException("上传图片失败");
         }
