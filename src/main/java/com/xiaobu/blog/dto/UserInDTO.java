@@ -1,7 +1,7 @@
 package com.xiaobu.blog.dto;
 
-import com.xiaobu.blog.exception.AdminUserException;
-import com.xiaobu.blog.model.AdminUser;
+import com.xiaobu.blog.exception.UserException;
+import com.xiaobu.blog.model.User;
 import com.xiaobu.blog.util.FileUtil;
 import com.xiaobu.blog.util.InetUtil;
 import lombok.Data;
@@ -15,7 +15,7 @@ import java.nio.file.Path;
  * @author zh  --2020/3/29 9:49
  */
 @Data
-public class UserInDTO implements Convert<AdminUser> {
+public class UserInDTO implements Convert<User> {
 
     private Long id;
 
@@ -30,8 +30,8 @@ public class UserInDTO implements Convert<AdminUser> {
     private String phone;
 
     @Override
-    public AdminUser toModel() {
-        AdminUser user = new AdminUser();
+    public User toModel() {
+        User user = new User();
         BeanUtils.copyProperties(this, user);
 
         // 创建存放目录
@@ -48,7 +48,7 @@ public class UserInDTO implements Convert<AdminUser> {
                 user.setAvatar("http://" + InetUtil.getRealIp() + "/user/avatar.jpg");
             } catch (SocketException e) {
                 e.printStackTrace();
-                throw new AdminUserException("存储头像失败");
+                throw new UserException("存储头像失败");
             }
         }
 

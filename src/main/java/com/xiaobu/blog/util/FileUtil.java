@@ -1,6 +1,5 @@
 package com.xiaobu.blog.util;
 
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,7 +69,7 @@ public class FileUtil {
      */
     public static void write(Path path, byte[] fileBytes) {
         try {
-            Files.write(path,fileBytes);
+            Files.write(path, fileBytes);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("写入文件出现异常");
@@ -78,6 +77,7 @@ public class FileUtil {
     }
 
     public static void write(Path path, MultipartFile multipartFile) {
+        FileUtil.class.getClassLoader().getResource(path.toString());
         try {
             Path res = Files.write(path, multipartFile.getBytes());
         } catch (IOException e) {

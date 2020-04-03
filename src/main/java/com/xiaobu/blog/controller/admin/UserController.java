@@ -2,35 +2,41 @@ package com.xiaobu.blog.controller.admin;
 
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.UserInDTO;
-import com.xiaobu.blog.exception.AdminUserException;
-import com.xiaobu.blog.service.AdminUserService;
+import com.xiaobu.blog.service.UserService;
 import com.xiaobu.blog.util.TokenUtil;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.util.Map;
+import javax.validation.constraints.NotBlank;
 
 /**
  * @author zh  --2020/3/23 10:13
  */
 @RestController
 @RequestMapping("/admin")
-public class AdminUserController {
+@Validated
+public class UserController {
 
     @Autowired
-    private AdminUserService adminUserService;
+    private TokenUtil tokenUtil;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 获取 Token
      * /admin/token?username=""&password=""
      */
     @GetMapping("/token")
-    public Response getToken(@RequestParam String username, @RequestParam String password, HttpSession session) {
-        return adminUserService.getToken(username, password);
+    public Response getToken(@RequestParam @NotBlank(message = "用户名不能为空") String username,
+                             @RequestParam @NotBlank(message = "密码不能为空") String password) {
+
+        return userService.getToken(username, password);
     }
 
     /**
@@ -39,8 +45,20 @@ public class AdminUserController {
      */
     @GetMapping("/user")
     public Response getAdminInfo(@RequestHeader("auth-token") String token) {
-        String userId = TokenUtil.getTokenSub(token);
-        return adminUserService.getUserInfo(Long.parseLong(userId));
+        Long userId = tokenUtil.getTokenSub(token);
+        return userService.getUserInfo(userId);
+    }
+
+    /**
+     * 登录状态下更改密码
+     * /admin/user/password PUT
+     */
+    @PutMapping("/user/password")
+    public Response putPassword(@RequestHeader("auth-token") String token,
+                                @RequestParam(required = false) @NotBlank(message = "旧密码不能为空") String oldPassword,
+                                @RequestParam(required = false) @Length(min = 6, max = 32, message = "密码位数最少 6 位，最长 32 位") String newPassword) {
+        Long userId = tokenUtil.getTokenSub(token);
+        return userService.updatePassword(oldPassword, newPassword, userId);
     }
 
     /**
@@ -58,24 +76,11 @@ public class AdminUserController {
         userInDTO.setPhone(multipartRequest.getParameter("phone"));
         userInDTO.setUsername(multipartRequest.getParameter("username"));
         String token = multipartRequest.getHeader("auth-token");
-        Long userId = Long.valueOf(TokenUtil.getTokenSub(token));
+        Long userId = tokenUtil.getTokenSub(token);
         userInDTO.setId(userId);
 
-        return adminUserService.updateUser(userInDTO);
+        return userService.updateUser(userInDTO);
     }
 
-    /**
-     * 更改密码
-     * /admin/user/password PUT
-     */
-    @PutMapping("/user/password")
-    public Response putPassword(@RequestHeader("auth-token") String token, @RequestBody Map<String, String> passwordMap) {
-        String oldPassword = passwordMap.get("oldPassword");
-        String newPassword = passwordMap.get("newPassword");
-        if(newPassword.length() < 6){
-            throw new AdminUserException("密码至少 6 位");
-        }
-        Long userId = Long.valueOf(TokenUtil.getTokenSub(token));
-        return adminUserService.updatePassword(oldPassword,newPassword,userId);
-    }
+
 }

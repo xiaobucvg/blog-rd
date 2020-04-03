@@ -10,3 +10,10 @@ spring:
 mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+custom:
+  ## jwt 密钥
+  jwt:
+    secret: 60Evs4tkzKfEwlVtvUuEtm395DhFF4NT
+  ## 文件上传路径
+  file-upload: C:/webapp/blog/images

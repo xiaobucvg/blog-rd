@@ -1,15 +1,21 @@
 package com.xiaobu.blog.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.xiaobu.blog.common.Const;
 import com.xiaobu.blog.common.token.Token;
-import com.xiaobu.blog.exception.ExpiresTokenException;
-import com.xiaobu.blog.exception.IllegalTokenException;
+import com.xiaobu.blog.common.token.TokenHeader;
+import com.xiaobu.blog.common.token.TokenPayload;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Base64;
+import java.util.Objects;
 
 /**
  * Token 工具类
@@ -17,131 +23,133 @@ import java.util.*;
  * @author zh  --2020/3/25 10:05
  */
 @Slf4j
+@Component
 public class TokenUtil {
 
-    private TokenUtil() {
-    }
+    @Autowired
+    private JSONUtil jsonUtil;
 
-    private static long expTime = 1000 * 60 * 60;
+    // token 缓存区
+    private ExpiryMap<String, Token> tokenMap = new ExpiryMap<>();
+    // 编码器
+    private Base64.Encoder encoder = Base64.getEncoder();
+    // 解码器
+    private Base64.Decoder decoder = Base64.getDecoder();
+    // 加密器
+    private Mac hmacSHA256;
+    // 密钥
+    @Value("custom.jwt.secret")
+    private String key = "default";
 
-    private static Base64.Encoder encoder = Base64.getEncoder();
-    private static Base64.Decoder decoder = Base64.getDecoder();
 
-    private static Mac hmacSHA256;
-
-    static {
+    public TokenUtil() {
         try {
-            hmacSHA256 = Mac.getInstance("HmacSHA256");
+            hmacSHA256 = Mac.getInstance(Const.TOKEN_ALG);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-            log.error("生成hmacSHA256实例失败.");
+            log.error("生成{}实例失败", Const.TOKEN_ALG);
+            throw new Error("系统启动失败");
         }
     }
-
-    // 签名密钥
-    private static String key = "simple-blog";
 
     /**
      * 生成Token
+     * 放入缓存
+     *
+     * @param sub token 持有者
      */
-    public static String getToken() {
-        Token token = new Token(expTime);
-
-        String header = getTokenHeader(token);
-        String body = getTokenBody(token);
-        String headerAndBody = header + "." + body;
-
-        String sign = getSign(headerAndBody);
-
-        return headerAndBody + "." + sign;
+    public String getToken(String sub) throws Exception {
+        Token token = new Token(sub, Const.TOKEN_EXP_TIME);
+        String header = this.getTokenHeader(token);
+        String payload = this.getTokenPayload(token);
+        String sign = this.getSign(header + "." + payload);
+        token.setSign(sign);
+        String tokenStr = header + "." + payload + "." + sign;
+        this.tokenMap.put(tokenStr, token, Const.TOKEN_EXP_TIME);
+        return tokenStr;
     }
 
-    public static String getToken(String sub) {
-        Token token = new Token(sub,expTime);
-
-        String header = getTokenHeader(token);
-        String body = getTokenBody(token);
-        String headerAndBody = header + "." + body;
-
-        String sign = getSign(headerAndBody);
-
-        return headerAndBody + "." + sign;
-    }
-
-
-    /**
-     * 验证 token
-     */
-    public static void checkToken(String token) throws IllegalTokenException, ExpiresTokenException {
-        String[] tokenArr = token.split("\\.");
-        String header = tokenArr[0];
-        String body = tokenArr[1];
-        String sign = tokenArr[2];
-        if (!Objects.equals(sign, getSign(header + "." + body))) {
-            throw new IllegalTokenException("token 不合法");
-        }
-        String json = new String(decoder.decode(body.getBytes()));
-        Long exp = Long.valueOf(Objects.requireNonNull(JsonUtil.stringToObject(json, Token.class)).getExp());
-        long now = new Date().getTime();
-        if (exp < now) {
-            throw new ExpiresTokenException("token 已经过期");
-        }
-    }
-
-    /**
-     * 获取 Token 头
-     */
-    private static String getTokenHeader(Token token) {
-        // 生成 token 头
-        Map<String, String> tokenHeaderMap = new HashMap<>();
-        tokenHeaderMap.put("typ", token.getTyp());
-        tokenHeaderMap.put("alg", token.getAlg());
-        byte[] tokenHeaderSrc = JsonUtil.objectToJsonBytes(tokenHeaderMap);
+    private String getTokenHeader(Token token) throws JsonProcessingException {
+        TokenHeader tokenHeader = token.getTokenHeader();
+        byte[] tokenHeaderSrc = jsonUtil.objectToJsonBytes(tokenHeader);
         return encoder.encodeToString(tokenHeaderSrc);
     }
 
-    /**
-     * 获取 Token 体
-     */
-    private static String getTokenBody(Token token) {
-        Map<String, String> tokenBodyMap = new HashMap<>();
-        tokenBodyMap.put("sub", token.getSub());
-        tokenBodyMap.put("iss", token.getIss());
-        tokenBodyMap.put("iat", token.getIat());
-        tokenBodyMap.put("exp", token.getExp());
-        tokenBodyMap.put("nbf", token.getNbf());
-        tokenBodyMap.put("jti", token.getJti());
-        byte[] tokenBodySrc = JsonUtil.objectToJsonBytes(tokenBodyMap);
+    private String getTokenPayload(Token token) throws JsonProcessingException {
+        TokenPayload tokenPayload = token.getTokenPayload();
+        byte[] tokenBodySrc = jsonUtil.objectToJsonBytes(tokenPayload);
         return encoder.encodeToString(tokenBodySrc);
     }
 
-    /**
-     * 生成签名
-     */
-    private static String getSign(String data) {
-        try {
-            SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(), "HmacSHA256");
-            hmacSHA256.init(secret_key);
-            byte[] bytes = hmacSHA256.doFinal(data.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte item : bytes) {
-                sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
-            }
-            return sb.toString().toUpperCase();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
+    private String getSign(String data) throws InvalidKeyException {
+        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), Const.TOKEN_ALG);
+        hmacSHA256.init(secretKey);
+        byte[] bytes = hmacSHA256.doFinal(data.getBytes());
+        StringBuilder sb = new StringBuilder();
+        for (byte item : bytes) {
+            sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
         }
-        return null;
+        return sb.toString().toUpperCase();
     }
 
     /**
-     * 获取 token 的 sub 信息
+     * 反向解析 token
      */
-    public static String getTokenSub(String token) {
-        String[] tokenArr = token.split("\\.");
-        String body = tokenArr[1];
-        String json = new String(decoder.decode(body.getBytes()));
-        return JsonUtil.stringToObject(json, Token.class).getSub();
+    public Token parseToken(String token) throws JsonProcessingException {
+        String[] strs = token.split("\\.");
+        TokenHeader header = jsonUtil.stringToObject(new String(decoder.decode(strs[0])), TokenHeader.class);
+        TokenPayload payload = jsonUtil.stringToObject(new String(decoder.decode(strs[1])), TokenPayload.class);
+        Token res = new Token();
+        res.setTokenHeader(header);
+        res.setTokenPayload(payload);
+        res.setSign(strs[2]);
+        return res;
+    }
+
+    /**
+     * 验证 token 是否有效
+     */
+    public boolean isValidationToken(String tokenStr) {
+        // 1. 查询缓存，如果存在，则绕过过期检查，并且刷新 token 在缓存中的有效期
+        Token token = this.tokenMap.get(tokenStr);
+        if (token != null) {
+            this.tokenMap.put(tokenStr, token, Const.TOKEN_EXP_TIME);
+            return true;
+        }
+        // 2. 缓存中不存在，验证 token 是否合法
+        try {
+            // 验证 token 是否是伪造或被修改过
+            token = this.parseToken(tokenStr);
+            String header = this.getTokenHeader(token);
+            String payload = this.getTokenPayload(token);
+            String sign = this.getSign(header + "." + payload);
+            if (!Objects.equals(sign, token.getSign())) {
+                return false;
+            }
+            // 验证 token 是否过期
+            long endTime = Long.parseLong(token.getTokenPayload().getExp());
+            long startTime = Long.parseLong(token.getTokenPayload().getNbf());
+            long currentTime = System.currentTimeMillis();
+            return currentTime >= startTime && currentTime < endTime;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return false;
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * 获取 sub 字段，在这里等于获取的用户 ID
+     */
+    public Long getTokenSub(String token) {
+        try {
+            return Long.valueOf(this.parseToken(token).getTokenPayload().getSub());
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            throw new RuntimeException("获取 token sub 字段失败");
+        }
     }
 }
 

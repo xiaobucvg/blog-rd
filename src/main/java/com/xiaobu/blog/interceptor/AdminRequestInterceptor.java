@@ -1,10 +1,8 @@
 package com.xiaobu.blog.interceptor;
 
-import com.xiaobu.blog.exception.AdminUserException;
-import com.xiaobu.blog.exception.ExpiresTokenException;
-import com.xiaobu.blog.exception.IllegalTokenException;
+import com.xiaobu.blog.exception.UserException;
 import com.xiaobu.blog.util.TokenUtil;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -22,8 +20,10 @@ import java.util.List;
 @Component
 public class AdminRequestInterceptor implements HandlerInterceptor {
 
-    private List<String> pathPatterns = new ArrayList<>();
+    @Autowired
+    private TokenUtil tokenUtil;
 
+    private List<String> pathPatterns = new ArrayList<>();
     private List<String> excludePathPatterns = new ArrayList<>();
 
     public AdminRequestInterceptor() {
@@ -43,16 +43,10 @@ public class AdminRequestInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String token = request.getHeader("auth-token");
         if (token == null) {
-            throw new AdminUserException("没有权限");
+            throw new UserException("没有权限访问，需要一个 auth-token");
         }
-        try {
-            TokenUtil.checkToken(token);
-        } catch (IllegalTokenException e) {
-            e.printStackTrace();
-            throw new AdminUserException("token非法");
-        } catch (ExpiresTokenException e) {
-            e.printStackTrace();
-            throw new AdminUserException("token已过期");
+        if (!tokenUtil.isValidationToken(token)) {
+            throw new UserException("没有访问权限，使用了非法 token");
         }
         return true;
     }

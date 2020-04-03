@@ -2,12 +2,10 @@ package com.xiaobu.blog.controller;
 
 import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
 import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
-import com.xiaobu.blog.common.response.Response;
-import com.xiaobu.blog.exception.ValidationException;
 import com.xiaobu.blog.common.page.Pageable;
+import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,10 +30,7 @@ public class TagController {
     @GetMapping
     @RequestJsonParamToObject(Pageable.class)
     @PageableAutoCalculate
-    public Response getTags(@RequestParam("json") String json, Pageable pageable, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            throw new ValidationException(bindingResult, "字段验证失败");
-        }
+    public Response getTags(@RequestParam("json") String json, Pageable pageable) {
         return tagService.getTags(pageable);
     }
 }

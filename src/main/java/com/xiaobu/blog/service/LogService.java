@@ -27,9 +27,14 @@ public class LogService {
      * 记录操作
      */
     public void saveLog(Log log) throws LogException {
-        int res = logMapper.insertSelective(log);
-        if (res != 1) {
-            throw new LogException("记录操作失败");
+        try {
+            int res = logMapper.insertSelective(log);
+            if (res != 1) {
+                // todo 记录日志
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // todo 记录日志
         }
     }
 
@@ -50,10 +55,10 @@ public class LogService {
     }
 
     private List<LogOutDTO> convertLogBatch(List<Log> logs) {
-        List<LogOutDTO> logOutDTOS = new ArrayList<>();
+        List<LogOutDTO> res = new ArrayList<>();
         logs.forEach(log -> {
-            logOutDTOS.add(new LogOutDTO().toModel(log));
+            res.add(new LogOutDTO().toModel(log));
         });
-        return logOutDTOS;
+        return res;
     }
 }

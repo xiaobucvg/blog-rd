@@ -5,8 +5,8 @@ package com.xiaobu.blog.exception;
  *
  * @author zh  --2020/3/25 14:24
  */
-public class TokenGetException extends AdminUserException{
-    public TokenGetException(String message) {
+public class TokenException extends RuntimeException{
+    public TokenException(String message) {
         super(message);
     }
 }

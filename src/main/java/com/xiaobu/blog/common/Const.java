@@ -7,14 +7,26 @@ package com.xiaobu.blog.common;
  */
 public class Const {
 
+    // token 的类型
+    public static final String TOKEN_TYPE = "jwt";
+
+    // token 加密方式
+    public static final String TOKEN_ALG = "HmacSHA256";
+
+    // token 过期事件
+    public static final Long TOKEN_EXP_TIME = (long) (1000 * 60 * 60);
+
     // 请求头 token 对应的 key
     public static final String TOKEN = "auth-token";
 
     // 文章状态
-    public enum ArticleStatus{
-        PUBLISHED(1001,"已发布"),
-        NOT_PUBLISHED(1002,"未发布"),
-        DELETED(1003,"已删除");
+    public enum ArticleStatus {
+        PUBLISHED(1001, "已发布"),
+        NOT_PUBLISHED(1002, "未发布"),
+        DELETED(1003, "已删除"),
+        TOP(1004, "置顶中"),
+        ABOUT(1005, "关于我"),
+        LINK(1006, "友情链接");
 
         int code;
         String msg;

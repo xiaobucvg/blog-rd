@@ -512,7 +512,7 @@
         select
         <include refid="Base_Column_List"/>
         from sm_article
-        where status != 1003
+        where status in (1001,1002)
         <if test="sorts != null and sorts.size > 0">
             order by
             <trim>
@@ -527,7 +527,7 @@
         select
         <include refid="Base_Column_List"/>
         from sm_article
-        where status != 1003
+        where status in (1001,1002)
         and MATCH (title,content,abstract_info)
         AGAINST (#{keywords} IN BOOLEAN MODE)
         <if test="pageable.sorts != null and pageable.sorts.size > 0">
@@ -543,7 +543,7 @@
     <select id="_countArticlesByKeywords" resultType="java.lang.Long">
         select count(*)
         from sm_article
-        where status != 1003
+        where status in (1001,1002)
           and MATCH(title, content, abstract_info)
                     AGAINST(#{keywords} IN BOOLEAN MODE);
     </select>
@@ -556,7 +556,7 @@
             a.update_time as aupdateTIme,
             t.id as tid,t.name as tname
             from sm_article a join sm_article__tag at join sm_tag t
-            on a.id = at.article_id and t.id = at.tag_id
+            on a.status = 1001 and a.id = at.article_id and t.id = at.tag_id
             where a.id = #{id}
         </if>
     </select>

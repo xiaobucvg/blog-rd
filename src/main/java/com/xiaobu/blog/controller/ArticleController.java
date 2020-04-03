@@ -1,15 +1,12 @@
 package com.xiaobu.blog.controller;
 
-import com.xiaobu.blog.aspect.annotation.Log;
 import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
 import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
-import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.common.page.Pageable;
-import com.xiaobu.blog.exception.ValidationException;
+import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,13 +56,11 @@ public class ArticleController {
     @RequestJsonParamToObject(Pageable.class)
     @PageableAutoCalculate
     public Response searchArticle(
-            @RequestParam("json") String json, Pageable pageable, BindingResult bindingResult,
+            @RequestParam("json") String json, Pageable pageable,
             @RequestParam(value = "keywords", required = false) String keywords,
             @RequestParam(value = "tagid", required = false) Long tagid
     ) {
-        if (bindingResult.hasErrors()) {
-            throw new ValidationException(bindingResult, "ArticleInDTO 字段验证失败");
-        }
+
         // 没有关键字
         if (StringUtils.isEmpty(keywords)) {
             if (tagid == null) {
@@ -84,10 +79,34 @@ public class ArticleController {
     @GetMapping("/archives")
     @RequestJsonParamToObject(Pageable.class)
     @PageableAutoCalculate
-    public Response archiveArticle(@RequestParam("json") String json, Pageable pageable, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            throw new ValidationException(bindingResult, "ArticleInDTO 字段验证失败");
-        }
+    public Response archiveArticle(@RequestParam("json") String json, Pageable pageable) {
         return articleService.archiveArticles(pageable);
+    }
+
+    /**
+     * 获取置顶文章
+     * /articles/top-articles
+     */
+    @GetMapping("/top-articles")
+    public Response getTopArticles() {
+        return articleService.getTopArticles();
+    }
+
+    /**
+     * 获取友情链接文章
+     * /articles/link-article
+     */
+    @GetMapping("/link-article")
+    public Response getLinkArticle() {
+        return articleService.getLinkArticle();
+    }
+
+    /**
+     * 获取关于我文章
+     * /articles/about-articles
+     */
+    @GetMapping("/about-article")
+    public Response getAboutArticle() {
+        return articleService.getAboutArticle();
     }
 }

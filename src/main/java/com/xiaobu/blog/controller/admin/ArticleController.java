@@ -6,17 +6,15 @@ import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.exception.ArticleException;
-import com.xiaobu.blog.exception.ValidationException;
 import com.xiaobu.blog.service.ArticleService;
 import com.xiaobu.blog.util.FileUtil;
 import com.xiaobu.blog.util.InetUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.nio.file.Path;
 import java.util.UUID;
 
@@ -37,10 +35,7 @@ public class ArticleController {
      * /admin/articles POST
      */
     @PostMapping
-    public Response postArticle(@RequestBody @Validated ArticleInDTO articleDTO, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            throw new ValidationException(bindingResult, "ArticleInDTO 字段验证失败");
-        }
+    public Response postArticle(@RequestBody @Valid ArticleInDTO articleDTO) {
         if (articleDTO.getId() == null) {
             return articleService.saveArticle(articleDTO);
         } else {
@@ -48,6 +43,31 @@ public class ArticleController {
         }
     }
 
+    /**
+     * 保存/更新 关于我文章
+     * /admin/articles/about-article
+     */
+    @PostMapping("/about-article")
+    public Response postAboutArticle(@RequestBody @Valid ArticleInDTO articleDTO) {
+        if (articleDTO.getId() == null) {
+            return articleService.saveAboutArticle(articleDTO);
+        } else {
+            return articleService.updateAboutArticle(articleDTO);
+        }
+    }
+
+    /**
+     * 保存/更新 友情链接文章
+     * /admin/articles/link-article
+     */
+    @PostMapping("/link-article")
+    public Response postLinkArticle(@RequestBody @Valid ArticleInDTO articleDTO) {
+        if (articleDTO.getId() == null) {
+            return articleService.saveLinkArticle(articleDTO);
+        } else {
+            return articleService.updateLinkArticle(articleDTO);
+        }
+    }
 
     /**
      * 批量改变状态
@@ -69,17 +89,15 @@ public class ArticleController {
 
     /**
      * 分页查询文章记录
+     * 只获取已发布和未发布的文章记录
      * /admin/articles?json={}&keywords=""
      */
     @GetMapping
     @RequestJsonParamToObject(Pageable.class)
     @PageableAutoCalculate
     public Response searchArticle(
-            @RequestParam("json") String json, Pageable pageable, BindingResult bindingResult,
+            @RequestParam("json") String json, Pageable pageable,
             @RequestParam(value = "keywords", required = false) String keywords) {
-        if (bindingResult.hasErrors()) {
-            throw new ValidationException(bindingResult, "ArticleInDTO 字段验证失败");
-        }
         // 没有关键字
         if (StringUtils.isEmpty(keywords)) {
             return articleService.getArticles(pageable);
@@ -95,10 +113,7 @@ public class ArticleController {
     @GetMapping("/deleted-articles")
     @RequestJsonParamToObject(Pageable.class)
     @PageableAutoCalculate
-    public Response searchDeletedArticles(@RequestParam("json") String json, Pageable pageable, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            throw new ValidationException(bindingResult, "ArticleInDTO 字段验证失败");
-        }
+    public Response searchDeletedArticles(@RequestParam("json") String json, Pageable pageable) {
         return articleService.getDeletedArticles(pageable);
     }
 
@@ -128,4 +143,12 @@ public class ArticleController {
         }
     }
 
+    /**
+     * 获取特殊文章记录
+     * /admin/articles/special-articles
+     */
+    @GetMapping("/special-articles")
+    public Response getSpecialArticles() {
+        return articleService.getSpecialArticles();
+    }
 }

@@ -1,25 +1,24 @@
 package com.xiaobu.blog.aspect;
 
 import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
-import com.xiaobu.blog.util.JsonUtil;
+import com.xiaobu.blog.util.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.DataBinder;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.validation.Validator;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 拦截所有注解了 @RequestJsonParamToObject 的方法
@@ -38,7 +37,7 @@ import java.util.Objects;
 public class RequestJsonParamAspect {
 
     @Autowired
-    Validator globalValidator;
+    private JSONUtil jsonUtil;
 
 
     // 匹配参数中有 @GetTypeWithJson 注解的方法
@@ -78,7 +77,7 @@ public class RequestJsonParamAspect {
         }
 
         Object obj = null;
-        obj = JsonUtil.stringToObject(json, clazz);
+        obj = jsonUtil.stringToObject(json, clazz);
         if (obj == null) {
             throw new RuntimeException("@GetTypeWithJson 使用错误,无法将 Json 反序列化.");
         }
@@ -86,14 +85,9 @@ public class RequestJsonParamAspect {
 
         // 4. 检查是否需要校验参数
         if ((boolean) an.getClass().getDeclaredMethod("needValidate").invoke(an)) {
-            DataBinder dataBinder = new DataBinder(obj);
-            dataBinder.setValidator((org.springframework.validation.Validator) globalValidator);
-            dataBinder.validate();
-            if (args.length > index + 2 && Objects.equals(args[index + 2].getClass(), BeanPropertyBindingResult.class)) {
-                BindingResult bindingResult = dataBinder.getBindingResult();
-                args[index + 2] = bindingResult;
-            } else {
-                log.warn("没有绑定 BindingResult ");
+            Set<ConstraintViolation<Object>> res = Validation.buildDefaultValidatorFactory().getValidator().validate(obj);
+            if (res.size() > 0) {
+                throw new ConstraintViolationException(res);
             }
         }
         return jp.proceed(args);

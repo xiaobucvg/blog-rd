@@ -1,16 +1,17 @@
 package com.xiaobu.blog.controller;
 
 import com.xiaobu.blog.common.response.Response;
-import com.xiaobu.blog.exception.AdminUserException;
 import com.xiaobu.blog.exception.ArticleException;
-import com.xiaobu.blog.exception.TokenGetException;
-import com.xiaobu.blog.exception.ValidationException;
-import com.xiaobu.blog.util.BindingResultUtil;
+import com.xiaobu.blog.exception.TokenException;
+import com.xiaobu.blog.exception.UserException;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -22,17 +23,35 @@ import java.util.Map;
 public class ExceptionAdviceController {
 
     /**
-     * 字段验证异常处理器
+     * bean 邦定值校验失败
+     * 异常异常处理器
      */
-    @ExceptionHandler({ValidationException.class})
-    public Response handleValidateException(ValidationException ex) {
+    @ExceptionHandler({MethodArgumentNotValidException.class})
+    public Response handleValidateException(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
-        Map<String, String> errorsMap = BindingResultUtil.getErrorsMap(result);
+        Map<String, String> errorsMap = new LinkedHashMap<>();
+        result.getFieldErrors().forEach(error -> {
+            errorsMap.put(error.getField(), error.getDefaultMessage());
+        });
         return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, "字段验证失败", errorsMap);
     }
 
     /**
-     * 文章相关异常处理器
+     * 方法参数校验失败
+     * 异常处理器
+     */
+    @ExceptionHandler({ConstraintViolationException.class})
+    public Response handleValidateException(ConstraintViolationException ex) {
+        Map<String, String> errorsMap = new LinkedHashMap<>();
+        ex.getConstraintViolations().forEach(val -> {
+            errorsMap.put(val.getPropertyPath().toString(), val.getMessage());
+        });
+        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, "字段验证失败", errorsMap);
+    }
+
+    /**
+     * 文章相关
+     * 异常处理器
      */
     @ExceptionHandler({ArticleException.class})
     public Response handleValidateException(ArticleException ex) {
@@ -40,21 +59,29 @@ public class ExceptionAdviceController {
     }
 
     /**
-     * 权限异常处理器
+     * 权限相关
+     * 异常处理器
      */
-    @ExceptionHandler({AdminUserException.class})
-    public Response handleAdminUserException(AdminUserException ex) {
-        if (ex instanceof TokenGetException) {
-            return Response.newFailInstance(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
-        }
+    @ExceptionHandler({UserException.class})
+    public Response handleUserException(UserException ex) {
         return Response.newFailInstance(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
     }
 
     /**
-     * 统一异常处理器
+     * Token 相关
+     * 异常处理器
+     */
+    @ExceptionHandler({TokenException.class})
+    public Response handleTokenException(UserException ex) {
+        return Response.newFailInstance(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
+    }
+
+    /**
+     * 统一
+     * 异常处理器
      */
     @ExceptionHandler({Exception.class})
     public Response handleException(Exception ex) {
-        return Response.newFailInstance(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"发生内部错误");
+        return Response.newFailInstance(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "发生内部错误");
     }
 }

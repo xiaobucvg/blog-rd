@@ -35,6 +35,8 @@ public class ArticleInDTO implements Convert<ArticleWithTag> {
     @NotEmpty(message = "文章至少要有一个标签")
     private Set<String> tags = new HashSet<>();
 
+    private Integer status = Const.ArticleStatus.PUBLISHED.getCode();
+
     @Override
     public ArticleWithTag toModel() {
         Article article = new Article();
@@ -42,7 +44,6 @@ public class ArticleInDTO implements Convert<ArticleWithTag> {
         article.setAbstractInfo(extractAbstractInfo(this.content));
         article.setCreateTime(new Date());
         article.setUpdateTime(new Date());
-        article.setStatus(Const.ArticleStatus.PUBLISHED.getCode());
         article.setReading(0L);
 
         ArticleWithTag res = new ArticleWithTag(article);
