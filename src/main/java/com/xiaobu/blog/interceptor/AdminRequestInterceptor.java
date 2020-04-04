@@ -1,6 +1,7 @@
 package com.xiaobu.blog.interceptor;
 
 import com.xiaobu.blog.exception.UserException;
+import com.xiaobu.blog.util.NetUtil;
 import com.xiaobu.blog.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,15 @@ public class AdminRequestInterceptor implements HandlerInterceptor {
         if (!tokenUtil.isValidationToken(token)) {
             throw new UserException("没有访问权限，使用了非法 token");
         }
+        String protocol = request.getProtocol();
+        if (protocol.toLowerCase().contains("https")) {
+            protocol = "https://";
+        } else if (protocol.toLowerCase().contains("http")) {
+            protocol = "http://";
+        } else {
+            throw new UserException("没有访问权限，使用了不支持的协议");
+        }
+        NetUtil.setServerAddress(protocol + request.getServerName() + ":" + request.getServerPort());
         return true;
     }
 }

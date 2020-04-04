@@ -4,6 +4,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,7 +18,10 @@ public class FileUtil {
 
     private FileUtil() {
     }
-
+    public static void getResource(){
+        URL resource = FileUtil.class.getClassLoader().getResource("");
+        System.out.println(resource);
+    }
     /**
      * 获取目录
      * 如果没有则创建

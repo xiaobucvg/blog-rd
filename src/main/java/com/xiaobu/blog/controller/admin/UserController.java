@@ -1,5 +1,6 @@
 package com.xiaobu.blog.controller.admin;
 
+import com.xiaobu.blog.common.Const;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.UserInDTO;
 import com.xiaobu.blog.service.UserService;
@@ -8,10 +9,7 @@ import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 
 /**
@@ -38,6 +36,7 @@ public class UserController {
 
         return userService.getToken(username, password);
     }
+
 
     /**
      * 获取用户信息
@@ -66,19 +65,9 @@ public class UserController {
      * /admin/user POST
      */
     @PostMapping("/user")
-    public Response postUser(HttpServletRequest httpRequest) {
-        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) httpRequest;
-        UserInDTO userInDTO = new UserInDTO();
-        MultipartFile avatarFile = multipartRequest.getFile("avatar-file");
-        userInDTO.setAvatarFile(avatarFile);
-        userInDTO.setEmail(multipartRequest.getParameter("email"));
-        userInDTO.setNickname(multipartRequest.getParameter("nickname"));
-        userInDTO.setPhone(multipartRequest.getParameter("phone"));
-        userInDTO.setUsername(multipartRequest.getParameter("username"));
-        String token = multipartRequest.getHeader("auth-token");
-        Long userId = tokenUtil.getTokenSub(token);
+    public Response postUser(UserInDTO userInDTO, @RequestHeader(name = Const.TOKEN) String authToken) {
+        Long userId = tokenUtil.getTokenSub(authToken);
         userInDTO.setId(userId);
-
         return userService.updateUser(userInDTO);
     }
 

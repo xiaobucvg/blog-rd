@@ -72,7 +72,7 @@ public class ExceptionAdviceController {
      * 异常处理器
      */
     @ExceptionHandler({TokenException.class})
-    public Response handleTokenException(UserException ex) {
+    public Response handleTokenException(TokenException ex) {
         return Response.newFailInstance(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
     }
 

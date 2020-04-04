@@ -1,15 +1,19 @@
 package com.xiaobu.blog.service;
 
 import com.xiaobu.blog.aspect.annotation.Log;
+import com.xiaobu.blog.common.Const;
 import com.xiaobu.blog.common.response.Response;
+import com.xiaobu.blog.dto.TokenOutDTO;
 import com.xiaobu.blog.dto.UserInDTO;
 import com.xiaobu.blog.dto.UserOutDTO;
-import com.xiaobu.blog.exception.UserException;
 import com.xiaobu.blog.exception.TokenException;
+import com.xiaobu.blog.exception.UserException;
 import com.xiaobu.blog.mapper.UserMapper;
 import com.xiaobu.blog.model.User;
 import com.xiaobu.blog.model.UserExample;
+import com.xiaobu.blog.util.FileUploadUtil;
 import com.xiaobu.blog.util.MD5Util;
+import com.xiaobu.blog.util.NetUtil;
 import com.xiaobu.blog.util.TokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,6 +31,9 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class UserService {
+
+    @Autowired
+    private FileUploadUtil fileUploadUtil;
 
     @Autowired
     private TokenUtil tokenUtil;
@@ -39,7 +47,7 @@ public class UserService {
     public Response getUserInfo(long userId) {
         User user = userMapper.selectByPrimaryKey(userId);
         if (user == null) {
-            return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, "没有用户");
+            return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, "获取失败，没有该用户信息");
         }
 
         UserOutDTO userOutDTO = new UserOutDTO().toModel(user);
@@ -62,11 +70,12 @@ public class UserService {
         String token = null;
         try {
             token = tokenUtil.getToken(user.getId().toString());
+            TokenOutDTO tokenOutDTO = new TokenOutDTO(token, Const.TOKEN_EXP_TIME);
+            return Response.newSuccessInstance("获取 token 成功", tokenOutDTO);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new UserException("获取 token 时发生错误");
+            throw new UserException("获取 token 时发生异常");
         }
-        return Response.newSuccessInstance("获取 token 成功", token);
     }
 
     /**
@@ -75,20 +84,27 @@ public class UserService {
     @Log("更新了用户信息")
     @Transactional
     public Response updateUser(UserInDTO userInDTO) {
-
         User user = userInDTO.toModel();
-
+        // 上传头像
+        if (userInDTO.getAvatarFile() != null) {
+            try {
+                String avatar = fileUploadUtil.uploadFile(userInDTO.getAvatarFile(), "user");
+                user.setAvatar(NetUtil.getServerAddress() + "/" + avatar);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new UserException("修改失败，用户头像上传失败");
+            }
+        }
         try {
             int res = userMapper.updateByPrimaryKeySelective(user);
             if (res == 1) {
-                return Response.newSuccessInstance("更新用户信息成功");
-            }
-            else {
-                throw new UserException("更新用户信息失败");
+                return Response.newSuccessInstance("修改成功");
+            } else {
+                throw new UserException("修改失败，没有用户被修改");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new UserException("更新用户信息发生错误");
+            throw new UserException("修改失败，修改用户信息发生异常");
         }
     }
 
@@ -103,7 +119,7 @@ public class UserService {
         example.createCriteria().andPasswordEqualTo(MD5Util.getMD5String(oldPassword)).andIdEqualTo(userId);
         List<User> users = userMapper.selectByExample(example);
         if (users == null || users.size() != 1) {
-            throw new UserException("旧密码输入不正确");
+            throw new UserException("更新失败，旧密码输入不正确");
         }
         // 2. 更新密码
         User admin = users.get(0);
@@ -113,11 +129,11 @@ public class UserService {
             if (res == 1) {
                 return Response.newSuccessInstance("更新密码成功");
             } else {
-                throw new UserException("更新密码失败");
+                throw new UserException("更新失败，没有用户被修改");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new UserException("更新密码发生错误");
+            throw new UserException("更新密码发生异常");
         }
     }
 }

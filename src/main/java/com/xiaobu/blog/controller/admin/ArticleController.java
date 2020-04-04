@@ -7,28 +7,30 @@ import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.exception.ArticleException;
 import com.xiaobu.blog.service.ArticleService;
-import com.xiaobu.blog.util.FileUtil;
-import com.xiaobu.blog.util.InetUtil;
+import com.xiaobu.blog.util.FileUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
-import java.nio.file.Path;
-import java.util.UUID;
+import java.io.IOException;
 
 /**
  * 文章控制器 - 后台
  *
  * @author zh  --2020/3/17 20:30
  */
+
 @RestController("article_controller_admin")
 @RequestMapping("/admin/articles")
 public class ArticleController {
 
     @Autowired
     private ArticleService articleService;
+
+    @Autowired
+    private FileUploadUtil fileUploadUtil;
 
     /**
      * 保存/更新文章
@@ -127,28 +129,20 @@ public class ArticleController {
     }
 
     /**
-     * 上传图片
-     * /admin/articles/image POST
-     */
-    @PostMapping("/image")
-    public Response postImage(@RequestParam("img") MultipartFile imgFile) {
-        try {
-            Path dir = FileUtil.getDirectory("static", "articles", "imgs");
-            String imgName = UUID.randomUUID() + imgFile.getOriginalFilename();
-            Path imgPath = FileUtil.getFile(imgName, dir);
-            FileUtil.write(imgPath, imgFile);
-            return Response.newSuccessInstance("上传成功", "http://" + InetUtil.getRealIp() + ":8080/articles/imgs/" + imgName);
-        } catch (Exception e) {
-            throw new ArticleException("上传图片失败");
-        }
-    }
-
-    /**
      * 获取特殊文章记录
      * /admin/articles/special-articles
      */
     @GetMapping("/special-articles")
     public Response getSpecialArticles() {
         return articleService.getSpecialArticles();
+    }
+
+    /**
+     * 上传图片
+     * /admin/articles/image POST
+     */
+    @PostMapping("/image")
+    public Response postImage(@RequestParam("img") MultipartFile multipartFile) {
+        return articleService.postImage(multipartFile);
     }
 }

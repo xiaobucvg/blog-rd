@@ -1,6 +1,6 @@
 package com.xiaobu.blog.common.token;
 
-import com.xiaobu.blog.util.InetUtil;
+import com.xiaobu.blog.util.NetUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -30,7 +30,7 @@ public class TokenPayload {
 
     public TokenPayload(String sub, long expTime) {
         // 固定
-        this.iss = "http://" + InetUtil.getLocalHost() + ":8080/admin/token";
+        this.iss = NetUtil.getServerAddress();
         this.iat = String.valueOf(new Date().getTime());
         this.nbf = iat;
         this.jti = UUID.randomUUID().toString();

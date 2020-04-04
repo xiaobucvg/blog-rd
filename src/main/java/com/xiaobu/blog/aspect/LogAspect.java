@@ -3,9 +3,8 @@ package com.xiaobu.blog.aspect;
 import com.xiaobu.blog.exception.LogException;
 import com.xiaobu.blog.model.Log;
 import com.xiaobu.blog.service.LogService;
-import com.xiaobu.blog.util.InetUtil;
+import com.xiaobu.blog.util.NetUtil;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -34,7 +33,7 @@ public class LogAspect {
     public void log(JoinPoint joinPoint) {
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = requestAttributes.getRequest();
-        String ip = InetUtil.getIpAddress(request);
+        String ip = NetUtil.getIpAddress(request);
 
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         com.xiaobu.blog.aspect.annotation.Log an = methodSignature.getMethod().getAnnotation(com.xiaobu.blog.aspect.annotation.Log.class);

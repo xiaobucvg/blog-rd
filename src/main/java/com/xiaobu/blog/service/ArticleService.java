@@ -8,6 +8,7 @@ import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.ArticleDetailOutDTO;
 import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.dto.ArticleItemOutDTO;
+import com.xiaobu.blog.dto.FileUploadOutDTO;
 import com.xiaobu.blog.exception.ArticleException;
 import com.xiaobu.blog.mapper.ArticleMapper;
 import com.xiaobu.blog.mapper.TagMapper;
@@ -16,12 +17,16 @@ import com.xiaobu.blog.model.ArticleExample;
 import com.xiaobu.blog.model.Tag;
 import com.xiaobu.blog.model.TagExample;
 import com.xiaobu.blog.model.wrapper.ArticleWithTag;
+import com.xiaobu.blog.util.FileUploadUtil;
+import com.xiaobu.blog.util.NetUtil;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -37,8 +42,30 @@ public class ArticleService {
     @Autowired
     private ArticleMapper articleMapper;
 
+    @Autowired
+    private FileUploadUtil fileUploadUtil;
+
+
     // ====================== 后台 ====================== //
 
+    /**
+     * 上传文章图片
+     */
+    public Response postImage(MultipartFile multipartFile) {
+        try {
+            String fileName = fileUploadUtil.uploadFile(multipartFile);
+            String url = NetUtil.getServerAddress() + "/" + fileName;
+            FileUploadOutDTO uploadOutDTO = new FileUploadOutDTO();
+            uploadOutDTO.setOriginFileName(multipartFile.getOriginalFilename());
+            uploadOutDTO.setFileName(fileName);
+            uploadOutDTO.setUrl(url);
+            uploadOutDTO.setUploadTime(new Date());
+            return Response.newSuccessInstance("上传成功", uploadOutDTO);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new ArticleException("上传图片失败");
+        }
+    }
 
     /**
      * 获取特殊文章记录（友情链接，关于我）
@@ -151,6 +178,13 @@ public class ArticleService {
         if (Const.ArticleStatus.DELETED.getCode() == articleWithTag.getArticle().getStatus()) {
             throw new ArticleException("更新失败，ID 为 " + articleWithTag.getArticle().getId() + " 的文章已经被删除,如果要修改,请先将其恢复");
         }
+
+        List<Long> ids = new ArrayList<>();
+        ids.add(articleWithTag.getArticle().getId());
+        if (this.existsArticle(articleWithTag.getArticle().getTitle(), ids)) {
+            throw new ArticleException("更新文章失败，标题已经存在");
+        }
+
         // 2. 开始更新
         Set<Tag> tagSet = processTags(articleWithTag.getTags());
         articleWithTag.setTags(tagSet);
@@ -182,24 +216,42 @@ public class ArticleService {
     @Log("创建了新文章")
     @Transactional
     public Response saveArticle(ArticleInDTO articleInDTO) {
-        int res = -1;
+        if (this.existsArticle(articleInDTO.getTitle(), null)) {
+            throw new ArticleException("新建文章失败，标题已经存在");
+        }
         // 必须去掉 ID
         articleInDTO.setId(null);
         ArticleWithTag articleWithTag = articleInDTO.toModel();
         Set<Tag> tags = articleWithTag.getTags();
         articleWithTag.setTags(processTags(tags));
         try {
-            res = articleMapper._insertArticleSelective(articleWithTag.getArticle());
+            int res = articleMapper._insertArticleSelective(articleWithTag.getArticle());
             if (res != 1) {
-                throw new ArticleException("新建文章出错");
+                throw new ArticleException("新建文章失败，没有文章被创建");
             }
             articleMapper._insertArticleTag(articleWithTag);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ArticleException("新建文章发生错误");
+            throw new ArticleException("新建文章发生异常");
         }
 
         return Response.newSuccessInstance("新建文章成功");
+    }
+
+    /**
+     * 检查该标题的文章是否存在
+     *
+     * @param title 要检查的标题
+     * @param ids   要排除检查的文章 ID
+     */
+    private boolean existsArticle(String title, List<Long> ids) {
+        ArticleExample example = new ArticleExample();
+        ArticleExample.Criteria criteria = example.createCriteria().andTitleEqualTo(title);
+        if (ids != null && ids.size() > 0) {
+            criteria.andIdNotIn(ids);
+        }
+        List<Article> articles = articleMapper.selectByExample(example);
+        return articles != null && articles.size() > 0;
     }
 
     /**
@@ -217,9 +269,9 @@ public class ArticleService {
             tagExample.createCriteria().andNameEqualTo(tag.getName());
             List<Tag> tagResList = tagMapper.selectByExample(tagExample);
             if (tagResList.isEmpty()) {
-                try{
+                try {
                     tagMapper._insertTagSelective(tag);
-                } catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                     throw new ArticleException("处理标签发生错误");
                 }
@@ -288,7 +340,7 @@ public class ArticleService {
         }
         try {
             articleMapper._updateArticleStatusByIds(this.splitIds(ids), status);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new ArticleException("修改文章状态发生错误");
         }
@@ -397,13 +449,13 @@ public class ArticleService {
         }
         List<Article> articles = articleMapper.selectByExample(example);
         if (articles != null && articles.size() > 0) {
-            try{
+            try {
                 // 处理中间表
                 articleMapper._deleteTagsByArticles(articles);
 
                 // 处理文章
                 articleMapper.deleteByExample(example);
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new ArticleException("删除文章发生错误");
             }

@@ -87,7 +87,6 @@ public class ExpiryMap<K, V> extends ConcurrentHashMap<K, V> {
     }
 
 
-
     @Override
     public Set<Entry<K, V>> entrySet() {
         Set<Entry<K, V>> entries = super.entrySet();
@@ -121,6 +120,18 @@ public class ExpiryMap<K, V> extends ConcurrentHashMap<K, V> {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public V get(Object key) {
+        V value = super.get(key);
+        if (value != null) {
+            long finalTime = expTimeMap.get(key);
+            if (System.currentTimeMillis() > finalTime) {
+                value = null;
+            }
+        }
+        return value;
     }
 
     @Override
@@ -186,18 +197,6 @@ public class ExpiryMap<K, V> extends ConcurrentHashMap<K, V> {
     @Override
     public V put(K key, V value) {
         throw new RuntimeException("此方法禁止使用，请使用 put 方法的重载方法");
-    }
-
-    @Override
-    public V get(Object key) {
-        V value = super.get(key);
-        if (value != null) {
-            long finalTime = expTimeMap.get(key);
-            if (System.currentTimeMillis() > finalTime) {
-                value = null;
-            }
-        }
-        return value;
     }
 
 }

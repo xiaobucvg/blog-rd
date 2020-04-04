@@ -2,55 +2,23 @@ package com.xiaobu.blog.util;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Enumeration;
 
 /**
  * 网络相关工具
  *
  * @author zh  --2020/3/26 20:55
  */
-public class InetUtil {
-    public static String getLocalHost() {
-        try {
-            return InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        return null;
+public class NetUtil {
+
+    private static String serverAddress = "default";
+
+    public static String getServerAddress() {
+        return serverAddress;
     }
 
-    // 获取本机公网 IP
-    public static String getRealIp() throws SocketException {
-        String localip = null;// 本地IP，如果没有配置外网IP则返回它
-        String netip = null;// 外网IP
-
-        Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
-        InetAddress ip = null;
-        boolean finded = false;// 是否找到外网IP
-        while (netInterfaces.hasMoreElements() && !finded) {
-            NetworkInterface ni = netInterfaces.nextElement();
-            Enumeration<InetAddress> address = ni.getInetAddresses();
-            while (address.hasMoreElements()) {
-                ip = address.nextElement();
-                if (!ip.isSiteLocalAddress() && !ip.isLoopbackAddress() && ip.getHostAddress().indexOf(":") == -1) {// 外网IP
-                    netip = ip.getHostAddress();
-                    finded = true;
-                    break;
-                } else if (ip.isSiteLocalAddress() && !ip.isLoopbackAddress()
-                        && ip.getHostAddress().indexOf(":") == -1) {// 内网IP
-                    localip = ip.getHostAddress();
-                }
-            }
-        }
-
-        if (netip != null && !"".equals(netip)) {
-            return netip;
-        } else {
-            return localip;
-        }
+    public static void setServerAddress(String serverAddress) {
+        NetUtil.serverAddress = serverAddress;
     }
 
 
