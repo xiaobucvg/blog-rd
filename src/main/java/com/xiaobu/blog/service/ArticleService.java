@@ -571,7 +571,7 @@ public class ArticleService {
     public Response getLinkArticle() {
         ArticleExample example = new ArticleExample();
         example.createCriteria().andStatusEqualTo(Const.ArticleStatus.LINK.getCode());
-        List<Article> articles = articleMapper.selectByExample(example);
+        List<Article> articles = articleMapper.selectByExampleWithBLOBs(example);
         if (articles != null && !articles.isEmpty()) {
             Article article = articles.get(0);
             ArticleWithTag articleWithTag = new ArticleWithTag();
@@ -588,7 +588,7 @@ public class ArticleService {
     public Response getAboutArticle() {
         ArticleExample example = new ArticleExample();
         example.createCriteria().andStatusEqualTo(Const.ArticleStatus.ABOUT.getCode());
-        List<Article> articles = articleMapper.selectByExample(example);
+        List<Article> articles = articleMapper.selectByExampleWithBLOBs(example);
         if (articles != null && !articles.isEmpty()) {
             Article article = articles.get(0);
             ArticleWithTag articleWithTag = new ArticleWithTag();

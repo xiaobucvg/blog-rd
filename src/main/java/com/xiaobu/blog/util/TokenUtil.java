@@ -66,6 +66,7 @@ public class TokenUtil {
         token.setSign(sign);
         String tokenStr = header + "." + payload + "." + sign;
         this.tokenMap.put(tokenStr, token, Const.TOKEN_EXP_TIME);
+        log.info("获取 token 成功");
         return tokenStr;
     }
 
@@ -95,7 +96,7 @@ public class TokenUtil {
     /**
      * 反向解析 token
      */
-    public Token parseToken(String token) throws JsonProcessingException {
+    private Token parseToken(String token) throws JsonProcessingException {
         String[] strs = token.split("\\.");
         TokenHeader header = jsonUtil.stringToObject(new String(decoder.decode(strs[0])), TokenHeader.class);
         TokenPayload payload = jsonUtil.stringToObject(new String(decoder.decode(strs[1])), TokenPayload.class);
@@ -131,11 +132,9 @@ public class TokenUtil {
             long startTime = Long.parseLong(token.getTokenPayload().getNbf());
             long currentTime = System.currentTimeMillis();
             return currentTime >= startTime && currentTime < endTime;
-        } catch (JsonProcessingException e) {
+        } catch (JsonProcessingException | InvalidKeyException e) {
             e.printStackTrace();
-            return false;
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
+            log.info("解析 token 发生异常");
             return false;
         }
     }
