@@ -25,7 +25,7 @@
 - `mvn package`
 - 运行（可以根据不同的配置文件运行在不同环境下）
     - `java -jar xxx.jar --spring.profiles.active=dev`（开发环境运行）
-    - `java -jar xxx.jar --spring.profiles.active-prod`（生产环境运行）
+    - `java -jar xxx.jar --spring.profiles.active=prod`（生产环境运行）
 
 ## 后续工作
 

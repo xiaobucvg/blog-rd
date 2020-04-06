@@ -1,5 +1,5 @@
-# 默认启用的开发环境
 spring:
+  # 默认启用的开发环境
   profiles:
     active: dev
   resources:

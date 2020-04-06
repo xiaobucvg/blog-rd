@@ -23,7 +23,7 @@ public class BlogApplication implements ApplicationListener {
     private FileUploadUtil fileUploadUtil;
 
     public static void main(String[] args) {
-        SpringApplication.run(BlogApplication.class);
+        SpringApplication.run(BlogApplication.class,args);
     }
 
     @Override
