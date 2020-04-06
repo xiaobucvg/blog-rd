@@ -2,7 +2,8 @@
 spring:
   profiles:
     active: dev
-
+  resources:
+    static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${custom.file-upload}
 
 # mybatis
 mybatis:

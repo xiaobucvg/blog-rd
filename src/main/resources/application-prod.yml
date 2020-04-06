@@ -6,3 +6,10 @@ spring:
     url: jdbc:mysql://101.201.122.174/simple_blog?useSSL=false&useUnicode=true&characterEncoding=utf-8&serverTimezone=CTT&zeroDateTimeBehavior=convertToNull&autoReconnect=true
     username: admin
     password: 199711
+
+custom:
+  ## jwt 密钥
+  jwt:
+    secret: 60Evs4tkzKfEwlVtvUuEtm395DhFF4NT
+  ## 文件上传路径
+  file-upload: ~/upload/blog

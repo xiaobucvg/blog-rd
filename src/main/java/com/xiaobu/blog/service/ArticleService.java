@@ -1,6 +1,5 @@
 package com.xiaobu.blog.service;
 
-import com.xiaobu.blog.aspect.annotation.Log;
 import com.xiaobu.blog.common.Const;
 import com.xiaobu.blog.common.page.Page;
 import com.xiaobu.blog.common.page.Pageable;
@@ -41,6 +40,9 @@ public class ArticleService {
     private TagMapper tagMapper;
     @Autowired
     private ArticleMapper articleMapper;
+
+    @Autowired
+    private LogService logService;
 
     @Autowired
     private FileUploadUtil fileUploadUtil;
@@ -163,25 +165,28 @@ public class ArticleService {
      * - 更新文章
      * - 处理中间表
      */
-    @Log("更新了文章")
     @Transactional
     public Response updateArticle(ArticleInDTO articleInDTO) {
         // 1. 判断是否能够更新
         if (articleInDTO.getId() == null) {
+            logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
             throw new ArticleException("更新文章时，ID不能为空");
         }
         ArticleWithTag articleWithTag = articleInDTO.toModel();
         Article article = articleMapper.selectByPrimaryKey(articleWithTag.getArticle().getId());
         if (article == null) {
+            logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
             throw new ArticleException("更新失败，ID 为 " + articleWithTag.getArticle().getId() + " 的文章不存在");
         }
         if (Const.ArticleStatus.DELETED.getCode() == articleWithTag.getArticle().getStatus()) {
+            logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
             throw new ArticleException("更新失败，ID 为 " + articleWithTag.getArticle().getId() + " 的文章已经被删除,如果要修改,请先将其恢复");
         }
 
         List<Long> ids = new ArrayList<>();
         ids.add(articleWithTag.getArticle().getId());
         if (this.existsArticle(articleWithTag.getArticle().getTitle(), ids)) {
+            logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
             throw new ArticleException("更新文章失败，标题已经存在");
         }
 
@@ -196,14 +201,17 @@ public class ArticleService {
         try {
             int res = articleMapper.updateByPrimaryKeySelective(articleWithTag.getArticle());
             if (res != 1) {
+                logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
                 throw new ArticleException("更新文章发生错误");
             }
             articleMapper._deleteAllTags(articleWithTag.getArticle());
             articleMapper._insertArticleTag(articleWithTag);
         } catch (Exception e) {
             e.printStackTrace();
+            logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
             throw new ArticleException("更新文章发生错误");
         }
+        logService.saveLog("更新ID:" + articleInDTO.getId() + "的文章成功");
         return Response.newSuccessInstance("更新文章成功");
     }
 
@@ -213,10 +221,10 @@ public class ArticleService {
      * - 插入 article
      * - 处理中间表
      */
-    @Log("创建了新文章")
     @Transactional
     public Response saveArticle(ArticleInDTO articleInDTO) {
         if (this.existsArticle(articleInDTO.getTitle(), null)) {
+            logService.saveLog("尝试新建文章：'" + articleInDTO.getTitle() + "'失败");
             throw new ArticleException("新建文章失败，标题已经存在");
         }
         // 必须去掉 ID
@@ -227,14 +235,16 @@ public class ArticleService {
         try {
             int res = articleMapper._insertArticleSelective(articleWithTag.getArticle());
             if (res != 1) {
+                logService.saveLog("尝试新建文章：'" + articleInDTO.getTitle() + "'失败");
                 throw new ArticleException("新建文章失败，没有文章被创建");
             }
             articleMapper._insertArticleTag(articleWithTag);
         } catch (Exception e) {
             e.printStackTrace();
+            logService.saveLog("尝试新建文章：'" + articleInDTO.getTitle() + "'失败");
             throw new ArticleException("新建文章发生异常");
         }
-
+        logService.saveLog("新建文章：'" + articleInDTO.getTitle() + "'成功");
         return Response.newSuccessInstance("新建文章成功");
     }
 
@@ -332,19 +342,20 @@ public class ArticleService {
      * - 验证 ID 合法性
      * - 文章改变状态
      */
-    @Log("修改了文章状态")
     @Transactional
     public Response changeArticleStatus(String ids, int status) {
         if (!this.checkStatusCode(status)) {
+            logService.saveLog("修改ID为【" + ids + "】的文章状态失败");
             throw new ArticleException("修改文章状态失败要修改的状态不存在");
         }
         try {
             articleMapper._updateArticleStatusByIds(this.splitIds(ids), status);
         } catch (Exception e) {
             e.printStackTrace();
+            logService.saveLog("修改ID为【" + ids + "】的文章状态失败");
             throw new ArticleException("修改文章状态发生错误");
         }
-
+        logService.saveLog("修改ID为【" + ids + "】的文章状态为 " + status + " 成功");
         return Response.newSuccessInstance("修改状态成功");
     }
 
@@ -401,7 +412,7 @@ public class ArticleService {
         ArticleWithTag articleWithTag = articleMapper._selectArticleWithTag(id);
         if (articleWithTag != null) {
             ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().toModel(articleWithTag);
-            this.addReading(id);
+            ((ArticleService) AopContext.currentProxy()).addReading(id);
             return Response.newSuccessInstance("获取详细信息成功", articleDetailOutDTO);
         }
         throw new ArticleException("没有找到文章");
@@ -437,7 +448,6 @@ public class ArticleService {
      * - 删除中间表相关数据
      * - 删除文章表
      */
-    @Log("删除了文章")
     @Transactional
     public Response deleteArticles(String ids) {
         // 查出所有符合删除条件的文章
@@ -457,10 +467,12 @@ public class ArticleService {
                 articleMapper.deleteByExample(example);
             } catch (Exception e) {
                 e.printStackTrace();
+                logService.saveLog("删除ID为【" + ids + "】的文章失败");
                 throw new ArticleException("删除文章发生错误");
             }
 
         }
+        logService.saveLog("删除ID为【" + ids + "】的文章成功");
         return Response.newSuccessInstance("删除了" + articles.size() + "篇文章");
     }
 

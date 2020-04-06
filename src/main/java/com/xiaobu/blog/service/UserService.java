@@ -1,6 +1,5 @@
 package com.xiaobu.blog.service;
 
-import com.xiaobu.blog.aspect.annotation.Log;
 import com.xiaobu.blog.common.Const;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.TokenOutDTO;
@@ -41,6 +40,9 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private LogService logService;
+
     /**
      * 获取用户信息
      */
@@ -58,22 +60,25 @@ public class UserService {
     /**
      * 获取 token
      */
-    @Log("获取了 Token")
     public Response getToken(String username, String password) {
         User user = userMapper._selectByUsername(username);
         if (user == null) {
+            logService.saveLog("尝试获取 token 失败");
             throw new TokenException("获取 token 失败，找不到用户");
         }
         if (!Objects.equals(user.getPassword(), MD5Util.getMD5String(password))) {
+            logService.saveLog("尝试获取 token 失败");
             throw new TokenException("获取 token 失败，密码错误");
         }
         String token = null;
         try {
             token = tokenUtil.getToken(user.getId().toString());
             TokenOutDTO tokenOutDTO = new TokenOutDTO(token, Const.TOKEN_EXP_TIME);
+            logService.saveLog("获取了 token ");
             return Response.newSuccessInstance("获取 token 成功", tokenOutDTO);
         } catch (Exception e) {
             e.printStackTrace();
+            logService.saveLog("尝试获取 token 失败");
             throw new UserException("获取 token 时发生异常");
         }
     }
@@ -81,7 +86,6 @@ public class UserService {
     /**
      * 更改用户信息
      */
-    @Log("更新了用户信息")
     @Transactional
     public Response updateUser(UserInDTO userInDTO) {
         User user = userInDTO.toModel();
@@ -92,18 +96,22 @@ public class UserService {
                 user.setAvatar(NetUtil.getServerAddress() + "/" + avatar);
             } catch (IOException e) {
                 e.printStackTrace();
+                logService.saveLog("尝试修改ID: " + userInDTO.getId() + " 的用户信息失败");
                 throw new UserException("修改失败，用户头像上传失败");
             }
         }
         try {
             int res = userMapper.updateByPrimaryKeySelective(user);
             if (res == 1) {
+                logService.saveLog("修改ID: " + userInDTO.getId() + " 的用户信息成功");
                 return Response.newSuccessInstance("修改成功");
             } else {
+                logService.saveLog("尝试修改ID: " + userInDTO.getId() + " 的用户信息失败");
                 throw new UserException("修改失败，没有用户被修改");
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logService.saveLog("尝试修改ID: " + userInDTO.getId() + " 的用户信息失败");
             throw new UserException("修改失败，修改用户信息发生异常");
         }
     }
@@ -111,7 +119,6 @@ public class UserService {
     /**
      * 更新用户的密码
      */
-    @Log("重新设置了密码")
     @Transactional
     public Response updatePassword(String oldPassword, String newPassword, Long userId) {
         // 1. 检查旧密码
@@ -119,7 +126,8 @@ public class UserService {
         example.createCriteria().andPasswordEqualTo(MD5Util.getMD5String(oldPassword)).andIdEqualTo(userId);
         List<User> users = userMapper.selectByExample(example);
         if (users == null || users.size() != 1) {
-            throw new UserException("更新失败，旧密码输入不正确");
+            logService.saveLog("尝试修改密码失败");
+            return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, "更新密码失败，旧密码输入不正确");
         }
         // 2. 更新密码
         User admin = users.get(0);
@@ -127,12 +135,15 @@ public class UserService {
         try {
             int res = userMapper.updateByPrimaryKeySelective(admin);
             if (res == 1) {
+                logService.saveLog("修改密码成功");
                 return Response.newSuccessInstance("更新密码成功");
             } else {
+                logService.saveLog("尝试修改密码失败");
                 throw new UserException("更新失败，没有用户被修改");
             }
         } catch (Exception e) {
             e.printStackTrace();
+            logService.saveLog("尝试修改密码失败");
             throw new UserException("更新密码发生异常");
         }
     }
