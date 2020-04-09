@@ -1,5 +1,7 @@
 package com.xiaobu.blog.util;
 
+import com.xiaobu.blog.exception.AuthException;
+
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -12,15 +14,6 @@ import java.net.UnknownHostException;
 public class NetUtil {
 
     private static String serverAddress = "default";
-
-    public static String getServerAddress() {
-        return serverAddress;
-    }
-
-    public static void setServerAddress(String serverAddress) {
-        NetUtil.serverAddress = serverAddress;
-    }
-
 
     // 获取请求方 IP 地址
     public static String getIpAddress(HttpServletRequest request) {
@@ -59,5 +52,29 @@ public class NetUtil {
         // ipAddress = this.getRequest().getRemoteAddr();
 
         return ipAddress;
+    }
+
+    /**
+     * 重新设置服务端地址并返回
+     */
+    public static String resetServerAddress(HttpServletRequest request) {
+        String protocol = request.getProtocol();
+        if (protocol.toLowerCase().contains("https")) {
+            protocol = "https://";
+        } else if (protocol.toLowerCase().contains("http")) {
+            protocol = "http://";
+        } else {
+            throw new AuthException("没有访问权限，使用了不支持的协议");
+        }
+        setServerAddress(protocol + request.getServerName() + ":" + request.getServerPort());
+        return serverAddress;
+    }
+
+    public static String getServerAddress() {
+        return serverAddress;
+    }
+
+    private static void setServerAddress(String serverAddress) {
+        NetUtil.serverAddress = serverAddress;
     }
 }

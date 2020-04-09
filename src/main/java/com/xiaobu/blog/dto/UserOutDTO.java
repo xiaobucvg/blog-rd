@@ -18,7 +18,7 @@ public class UserOutDTO implements Convert<User> {
     private String avatar;
 
     @Override
-    public UserOutDTO toModel(User user) {
+    public UserOutDTO copyFrom(User user) {
         BeanUtils.copyProperties(user,this);
         return this;
     }

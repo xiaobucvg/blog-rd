@@ -1,4 +1,4 @@
-package com.xiaobu.blog.controller;
+package com.xiaobu.blog.controller.client;
 
 import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
 import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;

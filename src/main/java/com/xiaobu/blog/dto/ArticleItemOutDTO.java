@@ -34,7 +34,7 @@ public class ArticleItemOutDTO implements Convert<Article> {
     private Date updateTime;
 
     @Override
-    public ArticleItemOutDTO toModel(Article article) {
+    public ArticleItemOutDTO copyFrom(Article article) {
         BeanUtils.copyProperties(article,this);
         for (Const.ArticleStatus value : Const.ArticleStatus.values()) {
             if(value.getCode() == article.getStatus()){

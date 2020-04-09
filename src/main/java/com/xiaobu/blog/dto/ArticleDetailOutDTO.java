@@ -35,7 +35,7 @@ public class ArticleDetailOutDTO implements Convert<ArticleWithTag> {
     private Set<TagOutDTO> tags;
 
     @Override
-    public ArticleDetailOutDTO toModel(ArticleWithTag articleWithTag) {
+    public ArticleDetailOutDTO copyFrom(ArticleWithTag articleWithTag) {
         BeanUtils.copyProperties(articleWithTag.getArticle(),this);
 
         HashSet<TagOutDTO> dtos = new HashSet<>();

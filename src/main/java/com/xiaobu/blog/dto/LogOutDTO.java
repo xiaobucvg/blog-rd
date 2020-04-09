@@ -23,7 +23,7 @@ public class LogOutDTO implements Convert<Log> {
     private Date updateTime;
 
     @Override
-    public LogOutDTO toModel(Log log) {
+    public LogOutDTO copyFrom(Log log) {
         BeanUtils.copyProperties(log, this);
         return this;
     }

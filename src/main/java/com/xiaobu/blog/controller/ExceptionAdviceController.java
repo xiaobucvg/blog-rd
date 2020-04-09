@@ -1,9 +1,7 @@
 package com.xiaobu.blog.controller;
 
 import com.xiaobu.blog.common.response.Response;
-import com.xiaobu.blog.exception.ArticleException;
-import com.xiaobu.blog.exception.TokenException;
-import com.xiaobu.blog.exception.UserException;
+import com.xiaobu.blog.exception.*;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,12 +13,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 统一异常处理
+ * 统一异常处理器
  *
  * @author zh  --2020/3/18 16:48
  */
 @RestControllerAdvice
 public class ExceptionAdviceController {
+
+    private static final String PRE_MESSAGE = "异常：";
 
     /**
      * bean 邦定值校验失败
@@ -33,7 +33,7 @@ public class ExceptionAdviceController {
         result.getFieldErrors().forEach(error -> {
             errorsMap.put(error.getField(), error.getDefaultMessage());
         });
-        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, "字段验证失败", errorsMap);
+        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + "字段验证失败", errorsMap);
     }
 
     /**
@@ -46,7 +46,7 @@ public class ExceptionAdviceController {
         ex.getConstraintViolations().forEach(val -> {
             errorsMap.put(val.getPropertyPath().toString(), val.getMessage());
         });
-        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, "字段验证失败", errorsMap);
+        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + "字段验证失败", errorsMap);
     }
 
     /**
@@ -55,16 +55,35 @@ public class ExceptionAdviceController {
      */
     @ExceptionHandler({ArticleException.class})
     public Response handleValidateException(ArticleException ex) {
-        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + ex.getMessage());
+    }
+
+    /**
+     * 文件上传
+     * 异常处理器
+     */
+    @ExceptionHandler({FileUploadException.class})
+    public Response handleFileUploadException(FileUploadException ex) {
+        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + ex.getMessage());
+    }
+
+
+    /**
+     * 用户操作
+     * 异常处理器
+     */
+    @ExceptionHandler({UserException.class})
+    public Response handleUserException(UserException ex) {
+        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + ex.getMessage());
     }
 
     /**
      * 权限相关
      * 异常处理器
      */
-    @ExceptionHandler({UserException.class})
-    public Response handleUserException(UserException ex) {
-        return Response.newFailInstance(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
+    @ExceptionHandler({AuthException.class})
+    public Response handleAuthException(AuthException ex) {
+        return Response.newFailInstance(HttpServletResponse.SC_UNAUTHORIZED, PRE_MESSAGE + ex.getMessage());
     }
 
     /**
@@ -73,7 +92,7 @@ public class ExceptionAdviceController {
      */
     @ExceptionHandler({TokenException.class})
     public Response handleTokenException(TokenException ex) {
-        return Response.newFailInstance(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
+        return Response.newFailInstance(HttpServletResponse.SC_FORBIDDEN, PRE_MESSAGE + ex.getMessage());
     }
 
     /**
@@ -82,6 +101,6 @@ public class ExceptionAdviceController {
      */
     @ExceptionHandler({Exception.class})
     public Response handleException(Exception ex) {
-        return Response.newFailInstance(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "发生内部错误");
+        return Response.newFailInstance(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, PRE_MESSAGE + "内部错误");
     }
 }

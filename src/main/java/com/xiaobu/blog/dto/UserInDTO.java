@@ -24,7 +24,7 @@ public class UserInDTO implements Convert<User> {
     private String phone;
 
     @Override
-    public User toModel() {
+    public User copyFrom() {
         User user = new User();
         BeanUtils.copyProperties(this, user);
         return user;

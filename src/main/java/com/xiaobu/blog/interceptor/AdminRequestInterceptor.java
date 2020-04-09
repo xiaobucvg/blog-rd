@@ -1,6 +1,6 @@
 package com.xiaobu.blog.interceptor;
 
-import com.xiaobu.blog.exception.UserException;
+import com.xiaobu.blog.exception.AuthException;
 import com.xiaobu.blog.util.NetUtil;
 import com.xiaobu.blog.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,20 +44,13 @@ public class AdminRequestInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String token = request.getHeader("auth-token");
         if (token == null) {
-            throw new UserException("没有权限访问，需要一个 auth-token");
+            throw new AuthException("没有权限访问，需要一个 auth-token");
         }
         if (!tokenUtil.isValidationToken(token)) {
-            throw new UserException("没有访问权限，使用了非法 token");
+            throw new AuthException("没有访问权限，使用了非法或已过期的 token");
         }
-        String protocol = request.getProtocol();
-        if (protocol.toLowerCase().contains("https")) {
-            protocol = "https://";
-        } else if (protocol.toLowerCase().contains("http")) {
-            protocol = "http://";
-        } else {
-            throw new UserException("没有访问权限，使用了不支持的协议");
-        }
-        NetUtil.setServerAddress(protocol + request.getServerName() + ":" + request.getServerPort());
+        // 每次访问后台接口，更新服务端地址信息，防止上传文件返回的 url 不正确
+        NetUtil.resetServerAddress(request);
         return true;
     }
 }

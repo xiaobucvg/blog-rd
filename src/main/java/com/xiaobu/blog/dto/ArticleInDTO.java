@@ -39,7 +39,7 @@ public class ArticleInDTO implements Convert<ArticleWithTag> {
     private Integer status = Const.ArticleStatus.PUBLISHED.getCode();
 
     @Override
-    public ArticleWithTag toModel() {
+    public ArticleWithTag copyFrom() {
         Article article = new Article();
         BeanUtils.copyProperties(this, article);
         article.setAbstractInfo(extractAbstractInfo(this.content));

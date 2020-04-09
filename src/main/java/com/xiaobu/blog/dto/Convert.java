@@ -6,11 +6,11 @@ package com.xiaobu.blog.dto;
  * @author zh  --2020/3/17 20:58
  */
 public interface Convert<T> {
-    default T toModel(){
+    default T copyFrom(){
         throw new RuntimeException("没有实现该方法");
     }
 
-    default Object toModel(T t){
+    default Object copyFrom(T t){
         throw new RuntimeException("没有实现该方法");
     }
 }

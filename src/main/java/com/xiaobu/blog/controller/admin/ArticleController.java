@@ -5,7 +5,6 @@ import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.ArticleInDTO;
-import com.xiaobu.blog.exception.ArticleException;
 import com.xiaobu.blog.service.ArticleService;
 import com.xiaobu.blog.util.FileUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
-import java.io.IOException;
 
 /**
  * 文章控制器 - 后台

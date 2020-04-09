@@ -16,7 +16,7 @@ public class TagOutDTO implements Convert<Tag> {
 
 
     @Override
-    public TagOutDTO toModel(Tag tag) {
+    public TagOutDTO copyFrom(Tag tag) {
         BeanUtils.copyProperties(tag,this);
         return this;
     }

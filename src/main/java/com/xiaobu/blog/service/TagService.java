@@ -46,7 +46,7 @@ public class TagService {
         List<TagOutDTO> newTagDTOList = new ArrayList<>();
 
         tags.forEach(tag -> {
-            newTagDTOList.add(new TagOutDTO().toModel(tag));
+            newTagDTOList.add(new TagOutDTO().copyFrom(tag));
         });
 
         return newTagDTOList;

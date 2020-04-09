@@ -9,8 +9,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.filter.FormContentFilter;
-import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -23,6 +21,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private AdminRequestInterceptor adminRequestInterceptor;
 
+    /**
+     * 权限拦截器
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(adminRequestInterceptor)
@@ -30,6 +31,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns(adminRequestInterceptor.getExcludePathPatterns());
     }
 
+
+    /**
+     * CORS 过滤器
+     */
     @Bean
     public FilterRegistrationBean corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

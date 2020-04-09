@@ -29,7 +29,7 @@ public interface ArticleMapper {
 
     List<Article> _selectPublishedArticlesByPage(Pageable pageable);
 
-    long _countPublisedArticlesByKeywords(String keywords);
+    long _countPublishedArticlesByKeywords(String keywords);
 
     List<Article> _selectPublishedArticlesByKeywords(Pageable pageable, String keywords);
 

@@ -4,6 +4,7 @@ import com.xiaobu.blog.common.page.Page;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.LogOutDTO;
+import com.xiaobu.blog.exception.LogException;
 import com.xiaobu.blog.mapper.LogMapper;
 import com.xiaobu.blog.model.Log;
 import com.xiaobu.blog.model.LogExample;
@@ -24,7 +25,7 @@ import java.util.List;
  * @author zh  --2020/3/29 16:11
  */
 @Service
-@Slf4j()
+@Slf4j
 public class LogService {
 
     @Autowired
@@ -32,30 +33,30 @@ public class LogService {
 
     @Async
     public void saveLog(String msg) {
-        Log log = new Log();
-        log.setMsg(msg);
-        this.saveLog(log);
+        Log logObj = new Log();
+        logObj.setMsg(msg);
+        try {
+            this.saveLog(logObj);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.warn("记录操作发生异常-{}", e.getMessage());
+        }
     }
 
     /**
      * 记录操作
      */
-    public void saveLog(Log logObj) {
+    private void saveLog(Log logObj) throws LogException {
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (requestAttributes == null) {
+            throw new LogException("记录失败，无法获取请求地址");
+        }
         HttpServletRequest request = requestAttributes.getRequest();
         String ip = NetUtil.getIpAddress(request);
         logObj.setIp(ip);
         logObj.setUpdateTime(new Date());
         logObj.setCreateTime(new Date());
-        try {
-            int res = logMapper.insertSelective(logObj);
-            if (res != 1) {
-                log.error("记录操作失败");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("记录操作失败");
-        }
+        int res = logMapper.insertSelective(logObj);
     }
 
     /**
@@ -77,7 +78,7 @@ public class LogService {
     private List<LogOutDTO> convertLogBatch(List<Log> logs) {
         List<LogOutDTO> res = new ArrayList<>();
         logs.forEach(log -> {
-            res.add(new LogOutDTO().toModel(log));
+            res.add(new LogOutDTO().copyFrom(log));
         });
         return res;
     }

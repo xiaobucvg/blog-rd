@@ -9,6 +9,7 @@ import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.dto.ArticleItemOutDTO;
 import com.xiaobu.blog.dto.FileUploadOutDTO;
 import com.xiaobu.blog.exception.ArticleException;
+import com.xiaobu.blog.exception.FileUploadException;
 import com.xiaobu.blog.mapper.ArticleMapper;
 import com.xiaobu.blog.mapper.TagMapper;
 import com.xiaobu.blog.model.Article;
@@ -38,6 +39,7 @@ public class ArticleService {
 
     @Autowired
     private TagMapper tagMapper;
+
     @Autowired
     private ArticleMapper articleMapper;
 
@@ -65,7 +67,7 @@ public class ArticleService {
             return Response.newSuccessInstance("上传成功", uploadOutDTO);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new ArticleException("上传图片失败");
+            throw new FileUploadException("上传图片时发生错误");
         }
     }
 
@@ -78,7 +80,7 @@ public class ArticleService {
         example.createCriteria().andStatusIn(Arrays.asList(statusCode));
         List<Article> articles = articleMapper.selectByExample(example);
         List<ArticleItemOutDTO> articleItemOutDTOS = this.convertArticleBatch(articles);
-        return Response.newSuccessInstance("获取特殊文章成功", articleItemOutDTOS);
+        return Response.newSuccessInstance("获取特殊文章记录成功", articleItemOutDTOS);
     }
 
     /**
@@ -87,17 +89,17 @@ public class ArticleService {
     public Response updateLinkArticle(ArticleInDTO articleInDTO) {
         // 检查
         if (articleInDTO.getId() == null) {
-            throw new ArticleException("更新失败，更新文章时，ID不能为空");
+            throw new ArticleException("无法更新，要更新的文章 ID 为空");
         }
         ArticleExample articleExample = new ArticleExample();
         articleExample.createCriteria().andStatusEqualTo(Const.ArticleStatus.LINK.getCode());
         List<Article> articles = articleMapper.selectByExample(articleExample);
         if (articles == null || articles.size() == 0) {
-            throw new ArticleException("更新失败，'友情链接'文章不存在");
+            throw new ArticleException("无法更新，'友情链接'文章不存在");
         }
         Article article = articles.get(0);
         if (!Objects.equals(article.getId(), articleInDTO.getId())) {
-            throw new ArticleException("更新失败，文章ID不匹配");
+            throw new ArticleException("无法更新，文章ID不匹配");
         }
         // 开始更新
         articleInDTO.setStatus(Const.ArticleStatus.LINK.getCode());
@@ -117,7 +119,7 @@ public class ArticleService {
             articleInDTO.setStatus(Const.ArticleStatus.LINK.getCode());
             return ((ArticleService) AopContext.currentProxy()).saveArticle(articleInDTO);
         }
-        throw new ArticleException("创建失败，'友情链接'已经存在");
+        throw new ArticleException("无法创建，'友情链接'已经存在");
     }
 
     /**
@@ -132,7 +134,7 @@ public class ArticleService {
             articleInDTO.setStatus(Const.ArticleStatus.ABOUT.getCode());
             return ((ArticleService) AopContext.currentProxy()).saveArticle(articleInDTO);
         }
-        throw new ArticleException("创建失败，'关于我'已经存在");
+        throw new ArticleException("无法创建，'关于我'已经存在");
     }
 
     /**
@@ -141,17 +143,17 @@ public class ArticleService {
     public Response updateAboutArticle(ArticleInDTO articleInDTO) {
         // 检查
         if (articleInDTO.getId() == null) {
-            throw new ArticleException("更新失败，更新文章时，ID不能为空");
+            throw new ArticleException("无法更新，要更新的文章 ID 为空");
         }
         ArticleExample articleExample = new ArticleExample();
         articleExample.createCriteria().andStatusEqualTo(Const.ArticleStatus.ABOUT.getCode());
         List<Article> articles = articleMapper.selectByExample(articleExample);
         if (articles == null || articles.size() == 0) {
-            throw new ArticleException("更新失败，'关于我'文章不存在");
+            throw new ArticleException("无法更新，'关于我'文章不存在");
         }
         Article article = articles.get(0);
         if (!Objects.equals(article.getId(), articleInDTO.getId())) {
-            throw new ArticleException("更新失败，文章ID不匹配");
+            throw new ArticleException("无法更新，要更新的文章不是'关于我'");
         }
         // 开始更新
         articleInDTO.setStatus(Const.ArticleStatus.ABOUT.getCode());
@@ -170,24 +172,24 @@ public class ArticleService {
         // 1. 判断是否能够更新
         if (articleInDTO.getId() == null) {
             logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
-            throw new ArticleException("更新文章时，ID不能为空");
+            throw new ArticleException("无法更新，更新的文章 ID 为空");
         }
-        ArticleWithTag articleWithTag = articleInDTO.toModel();
+        ArticleWithTag articleWithTag = articleInDTO.copyFrom();
         Article article = articleMapper.selectByPrimaryKey(articleWithTag.getArticle().getId());
         if (article == null) {
             logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
-            throw new ArticleException("更新失败，ID 为 " + articleWithTag.getArticle().getId() + " 的文章不存在");
+            throw new ArticleException("无法更新，ID 为 " + articleWithTag.getArticle().getId() + " 的文章不存在");
         }
         if (Const.ArticleStatus.DELETED.getCode() == articleWithTag.getArticle().getStatus()) {
             logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
-            throw new ArticleException("更新失败，ID 为 " + articleWithTag.getArticle().getId() + " 的文章已经被删除,如果要修改,请先将其恢复");
+            throw new ArticleException("无法更新，ID 为 " + articleWithTag.getArticle().getId() + " 的文章在回收站中");
         }
 
         List<Long> ids = new ArrayList<>();
         ids.add(articleWithTag.getArticle().getId());
         if (this.existsArticle(articleWithTag.getArticle().getTitle(), ids)) {
             logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
-            throw new ArticleException("更新文章失败，标题已经存在");
+            throw new ArticleException("无法更新，标题‘" + articleInDTO.getTitle() + "’已经存在");
         }
 
         // 2. 开始更新
@@ -202,14 +204,14 @@ public class ArticleService {
             int res = articleMapper.updateByPrimaryKeySelective(articleWithTag.getArticle());
             if (res != 1) {
                 logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
-                throw new ArticleException("更新文章发生错误");
+                throw new ArticleException("更新失败，更新文章时发生错误");
             }
             articleMapper._deleteAllTags(articleWithTag.getArticle());
             articleMapper._insertArticleTag(articleWithTag);
         } catch (Exception e) {
             e.printStackTrace();
             logService.saveLog("尝试更新ID:" + articleInDTO.getId() + "的文章失败");
-            throw new ArticleException("更新文章发生错误");
+            throw new ArticleException("更新失败，更新文章时发生错误");
         }
         logService.saveLog("更新ID:" + articleInDTO.getId() + "的文章成功");
         return Response.newSuccessInstance("更新文章成功");
@@ -225,24 +227,24 @@ public class ArticleService {
     public Response saveArticle(ArticleInDTO articleInDTO) {
         if (this.existsArticle(articleInDTO.getTitle(), null)) {
             logService.saveLog("尝试新建文章：'" + articleInDTO.getTitle() + "'失败");
-            throw new ArticleException("新建文章失败，标题已经存在");
+            throw new ArticleException("无法创建，标题‘" + articleInDTO.getTitle() + "’已经存在");
         }
         // 必须去掉 ID
         articleInDTO.setId(null);
-        ArticleWithTag articleWithTag = articleInDTO.toModel();
+        ArticleWithTag articleWithTag = articleInDTO.copyFrom();
         Set<Tag> tags = articleWithTag.getTags();
         articleWithTag.setTags(processTags(tags));
         try {
             int res = articleMapper._insertArticleSelective(articleWithTag.getArticle());
             if (res != 1) {
                 logService.saveLog("尝试新建文章：'" + articleInDTO.getTitle() + "'失败");
-                throw new ArticleException("新建文章失败，没有文章被创建");
+                throw new ArticleException("创建失败，文章没有被创建");
             }
             articleMapper._insertArticleTag(articleWithTag);
         } catch (Exception e) {
             e.printStackTrace();
             logService.saveLog("尝试新建文章：'" + articleInDTO.getTitle() + "'失败");
-            throw new ArticleException("新建文章发生异常");
+            throw new ArticleException("创建失败，文章创建发生错误");
         }
         logService.saveLog("新建文章：'" + articleInDTO.getTitle() + "'成功");
         return Response.newSuccessInstance("新建文章成功");
@@ -283,7 +285,7 @@ public class ArticleService {
                     tagMapper._insertTagSelective(tag);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    throw new ArticleException("处理标签发生错误");
+                    throw new ArticleException("创建标签失败，创建时发生错误");
                 }
                 newTagSet.add(tag);
             } else {
@@ -329,7 +331,7 @@ public class ArticleService {
         List<ArticleItemOutDTO> newArticleList = new ArrayList<>();
 
         articles.forEach(article -> {
-            newArticleList.add(new ArticleItemOutDTO().toModel(article));
+            newArticleList.add(new ArticleItemOutDTO().copyFrom(article));
         });
 
         return newArticleList;
@@ -346,14 +348,14 @@ public class ArticleService {
     public Response changeArticleStatus(String ids, int status) {
         if (!this.checkStatusCode(status)) {
             logService.saveLog("修改ID为【" + ids + "】的文章状态失败");
-            throw new ArticleException("修改文章状态失败要修改的状态不存在");
+            throw new ArticleException("无法修改，要修改的状态值不存在");
         }
         try {
             articleMapper._updateArticleStatusByIds(this.splitIds(ids), status);
         } catch (Exception e) {
             e.printStackTrace();
             logService.saveLog("修改ID为【" + ids + "】的文章状态失败");
-            throw new ArticleException("修改文章状态发生错误");
+            throw new ArticleException("修改失败，修改文章状态时发生错误");
         }
         logService.saveLog("修改ID为【" + ids + "】的文章状态为 " + status + " 成功");
         return Response.newSuccessInstance("修改状态成功");
@@ -370,7 +372,7 @@ public class ArticleService {
         Pattern pattern = Pattern.compile("[0-9]*");
         idList.forEach(id -> {
             if (!pattern.matcher(id).matches()) {
-                throw new ArticleException("ID 解析出错,请使用 ',' 将 ID 分割,并且不能出现其他字符");
+                throw new RuntimeException("ID 解析出错");
             }
         });
         return idList;
@@ -411,11 +413,11 @@ public class ArticleService {
     public Response getDetailArticle(long id) {
         ArticleWithTag articleWithTag = articleMapper._selectArticleWithTag(id);
         if (articleWithTag != null) {
-            ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().toModel(articleWithTag);
+            ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().copyFrom(articleWithTag);
             ((ArticleService) AopContext.currentProxy()).addReading(id);
-            return Response.newSuccessInstance("获取详细信息成功", articleDetailOutDTO);
+            return Response.newSuccessInstance("获取文章详细信息成功", articleDetailOutDTO);
         }
-        throw new ArticleException("没有找到文章");
+        throw new ArticleException("获取失败，ID 为" + id + "的文章不存在");
     }
 
     /**
@@ -423,7 +425,11 @@ public class ArticleService {
      */
     @Async
     void addReading(long id) {
-        articleMapper._addReading(id);
+        try {
+            articleMapper._addReading(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -462,18 +468,17 @@ public class ArticleService {
             try {
                 // 处理中间表
                 articleMapper._deleteTagsByArticles(articles);
-
                 // 处理文章
                 articleMapper.deleteByExample(example);
             } catch (Exception e) {
                 e.printStackTrace();
                 logService.saveLog("删除ID为【" + ids + "】的文章失败");
-                throw new ArticleException("删除文章发生错误");
+                throw new ArticleException("删除失败，删除文章时发生错误");
             }
 
         }
         logService.saveLog("删除ID为【" + ids + "】的文章成功");
-        return Response.newSuccessInstance("删除了" + articles.size() + "篇文章");
+        return Response.newSuccessInstance("删除成功，删除了" + articles.size() + "篇文章");
     }
 
     // ====================== 前台 ====================== //
@@ -505,7 +510,7 @@ public class ArticleService {
     public Response searchPublishedArticles(Pageable pageable, String keywords) {
 
         // 1. 获取数量
-        long articleCounts = articleMapper._countPublisedArticlesByKeywords(keywords);
+        long articleCounts = articleMapper._countPublishedArticlesByKeywords(keywords);
 
         // 2. 查询具体内容
         List<Article> articles = articleMapper._selectPublishedArticlesByKeywords(pageable, keywords);
@@ -530,8 +535,8 @@ public class ArticleService {
         // 分页查询归档
         List<String> months = articleMapper._selectMonth(pageable);
 
-        if (months == null || months.size() == 0) {
-            throw new ArticleException("还没有归档哦~");
+        if (months == null) {
+            months = new ArrayList<>();
         }
 
         // 遍历归档查询具体文章
@@ -588,10 +593,10 @@ public class ArticleService {
             Article article = articles.get(0);
             ArticleWithTag articleWithTag = new ArticleWithTag();
             articleWithTag.setArticle(article);
-            ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().toModel(articleWithTag);
+            ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().copyFrom(articleWithTag);
             return Response.newSuccessInstance("获取'友情链接'文章成功", articleDetailOutDTO);
         }
-        throw new ArticleException("还没有创建'友情链接'文章");
+        throw new ArticleException("获取失败，还没有创建'友情链接'文章");
     }
 
     /**
@@ -605,12 +610,10 @@ public class ArticleService {
             Article article = articles.get(0);
             ArticleWithTag articleWithTag = new ArticleWithTag();
             articleWithTag.setArticle(article);
-            ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().toModel(articleWithTag);
+            ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().copyFrom(articleWithTag);
             return Response.newSuccessInstance("获取'关于我'文章成功", articleDetailOutDTO);
         }
-        throw new ArticleException("还没有创建'关于我'文章");
+        throw new ArticleException("获取失败，还没有创建'关于我'文章");
 
     }
-
-
 }

@@ -575,7 +575,7 @@
         </if>
         limit ${start},${end}
     </select>
-    <select id="_countPublisedArticlesByKeywords" resultType="java.lang.Long">
+    <select id="_countPublishedArticlesByKeywords" resultType="java.lang.Long">
         select count(*)
         from sm_article
         where status = 1001
