@@ -17,13 +17,13 @@ import java.io.IOException;
 @SpringBootApplication
 @EnableAspectJAutoProxy(exposeProxy = true)
 @MapperScan("com.xiaobu.blog.mapper")
-public class BlogApplication implements ApplicationListener {
+public class Application implements ApplicationListener {
 
     @Autowired
     private FileUploadUtil fileUploadUtil;
 
     public static void main(String[] args) {
-        SpringApplication.run(BlogApplication.class,args);
+        SpringApplication.run(Application.class,args);
     }
 
     @Override

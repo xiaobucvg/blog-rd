@@ -45,7 +45,6 @@ public interface ArticleMapper {
 
     List<Article> _selectDeletedArticles(Pageable pageable);
 
-
     int _deleteTagsByArticles(List<Article> articles);
 
     /**

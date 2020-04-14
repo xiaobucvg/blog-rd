@@ -13,11 +13,14 @@ public class Const {
     // token 加密方式
     public static final String TOKEN_ALG = "HmacSHA256";
 
-    // token 过期事件
-    public static final Long TOKEN_EXP_TIME = (long) (1000 * 60 * 60);
+    // token 过期时间
+    public static final long TOKEN_EXP_TIME = (long) (1000 * 60 * 60);
 
     // 请求头 token 对应的 key
     public static final String TOKEN = "auth-token";
+
+    // 上传图片最大限制 byte
+    public static final long FILE_IMAGE_MAX_SIZE = (long) (8 * 1024 * 1024 * 10);
 
     // 文章状态
     public enum ArticleStatus {
@@ -53,4 +56,26 @@ public class Const {
         }
     }
 
+    // 图片的所有 mime 类型
+    public static final String[] IMAGE_MIMES = new String[]{
+            "image/bmp",
+            "image/cis-cod",
+            "image/gif",
+            "image/ief",
+            "image/jpeg",
+            "image/pipeg",
+            "image/svg+xml",
+            "image/tiff",
+            "image/x-cmu-raster",
+            "image/x-cmx",
+            "image/x-icon",
+            "image/x-portable-anymap",
+            "image/x-portable-bitmap",
+            "image/x-portable-graymap",
+            "image/x-portable-pixmap",
+            "image/x-rgb",
+            "image/x-xbitmap",
+            "image/x-xpixmap",
+            "image/x-xwindowdump",
+    };
 }

@@ -1,6 +1,7 @@
 package com.xiaobu.blog.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.xiaobu.blog.dto.interfaces.Convert;
 import com.xiaobu.blog.model.Log;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;

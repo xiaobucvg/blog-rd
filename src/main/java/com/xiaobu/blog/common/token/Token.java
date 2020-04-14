@@ -1,10 +1,8 @@
 package com.xiaobu.blog.common.token;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.xiaobu.blog.util.JSONUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author zh  --2020/3/25 14:39

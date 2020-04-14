@@ -1,7 +1,7 @@
 package com.xiaobu.blog.aspect;
 
 import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
-import com.xiaobu.blog.util.JSONUtil;
+import com.xiaobu.blog.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -37,7 +37,7 @@ import java.util.Set;
 public class RequestJsonParamAspect {
 
     @Autowired
-    private JSONUtil jsonUtil;
+    private JsonUtil jsonUtil;
 
 
     // 匹配参数中有 @GetTypeWithJson 注解的方法

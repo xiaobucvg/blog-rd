@@ -2,15 +2,18 @@ package com.xiaobu.blog.controller;
 
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.exception.*;
-import org.springframework.validation.BindingResult;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingPathVariableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 统一异常处理器
@@ -20,34 +23,61 @@ import java.util.Map;
 @RestControllerAdvice
 public class ExceptionAdviceController {
 
-    private static final String PRE_MESSAGE = "异常：";
+    private static final String PRE_MESSAGE = "";
 
-    /**
-     * bean 邦定值校验失败
-     * 异常异常处理器
-     */
-    @ExceptionHandler({MethodArgumentNotValidException.class})
-    public Response handleValidateException(MethodArgumentNotValidException ex) {
-        BindingResult result = ex.getBindingResult();
-        Map<String, String> errorsMap = new LinkedHashMap<>();
-        result.getFieldErrors().forEach(error -> {
-            errorsMap.put(error.getField(), error.getDefaultMessage());
-        });
-        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + "字段验证失败", errorsMap);
+    @ExceptionHandler({ConstraintViolationException.class,
+            MethodArgumentNotValidException.class,
+            ServletRequestBindingException.class,
+            BindException.class})
+    public Response handleValidationException(Exception e) {
+        String msg = "";
+        if (e instanceof MethodArgumentNotValidException) {
+            msg = ((MethodArgumentNotValidException) e).getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        } else if (e instanceof BindException) {
+            msg = ((BindException) e).getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        } else if (e instanceof ConstraintViolationException) {
+            ConstraintViolationException t = (ConstraintViolationException) e;
+            msg = t.getConstraintViolations().stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.joining(","));
+        } else if (e instanceof MissingServletRequestParameterException) {
+            MissingServletRequestParameterException t = (MissingServletRequestParameterException) e;
+            msg = t.getParameterName() + " 不能为空";
+        } else if (e instanceof MissingPathVariableException) {
+            MissingPathVariableException t = (MissingPathVariableException) e;
+            msg = t.getVariableName() + " 不能为空";
+        } else {
+            msg = "必填参数缺失";
+        }
+        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, msg);
     }
 
-    /**
-     * 方法参数校验失败
-     * 异常处理器
-     */
-    @ExceptionHandler({ConstraintViolationException.class})
-    public Response handleValidateException(ConstraintViolationException ex) {
-        Map<String, String> errorsMap = new LinkedHashMap<>();
-        ex.getConstraintViolations().forEach(val -> {
-            errorsMap.put(val.getPropertyPath().toString(), val.getMessage());
-        });
-        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + "字段验证失败", errorsMap);
-    }
+//    /**
+//     * bean 邦定值校验失败
+//     * 异常异常处理器
+//     */
+//    @ExceptionHandler({MethodArgumentNotValidException.class})
+//    public Response handleValidateException(MethodArgumentNotValidException ex) {
+//        BindingResult result = ex.getBindingResult();
+//        Map<String, String> errorsMap = new LinkedHashMap<>();
+//        result.getFieldErrors().forEach(error -> {
+//            errorsMap.put(error.getField(), error.getDefaultMessage());
+//        });
+//        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + "参数校验失败", errorsMap);
+//    }
+//
+//    /**
+//     * 方法参数校验失败
+//     * 异常处理器
+//     */
+//    @ExceptionHandler({ConstraintViolationException.class})
+//    public Response handleValidateException(ConstraintViolationException ex) {
+//        Map<String, String> errorsMap = new LinkedHashMap<>();
+//        ex.getConstraintViolations().forEach(val -> {
+//            errorsMap.put(val.getPropertyPath().toString(), val.getMessage());
+//        });
+//        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + "参数校验失败", errorsMap);
+//    }
 
     /**
      * 文章相关

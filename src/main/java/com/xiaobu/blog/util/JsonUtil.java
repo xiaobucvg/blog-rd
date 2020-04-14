@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class JSONUtil {
+public class JsonUtil {
 
     private ObjectMapper mapper = new ObjectMapper();
 

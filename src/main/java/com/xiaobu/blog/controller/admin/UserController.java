@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 /**
@@ -65,7 +66,7 @@ public class UserController {
      * /admin/user POST
      */
     @PostMapping("/user")
-    public Response postUser(UserInDTO userInDTO, @RequestHeader(name = Const.TOKEN) String authToken) {
+    public Response postUser(@Valid UserInDTO userInDTO, @RequestHeader(name = Const.TOKEN) String authToken) {
         Long userId = tokenUtil.getTokenSub(authToken);
         userInDTO.setId(userId);
         return userService.updateUser(userInDTO);

@@ -11,7 +11,7 @@ import com.xiaobu.blog.mapper.UserMapper;
 import com.xiaobu.blog.model.User;
 import com.xiaobu.blog.model.UserExample;
 import com.xiaobu.blog.util.FileUploadUtil;
-import com.xiaobu.blog.util.MD5Util;
+import com.xiaobu.blog.util.Md5Util;
 import com.xiaobu.blog.util.NetUtil;
 import com.xiaobu.blog.util.TokenUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Objects;
 
@@ -67,7 +66,7 @@ public class UserService {
             throw new TokenException("没有找到用户");
         }
         try {
-            if (!Objects.equals(user.getPassword(), MD5Util.getMD5String(password))) {
+            if (!Objects.equals(user.getPassword(), Md5Util.getMD5String(password))) {
                 logService.saveLog("尝试获取 token 失败，密码错误");
                 throw new TokenException("密码输入错误");
             }
@@ -124,7 +123,7 @@ public class UserService {
         // 1. 检查旧密码
         UserExample example = new UserExample();
         try {
-            example.createCriteria().andPasswordEqualTo(MD5Util.getMD5String(oldPassword)).andIdEqualTo(userId);
+            example.createCriteria().andPasswordEqualTo(Md5Util.getMD5String(oldPassword)).andIdEqualTo(userId);
             List<User> users = userMapper.selectByExample(example);
             if (users == null || users.size() != 1) {
                 logService.saveLog("尝试更新密码失败");
@@ -132,7 +131,7 @@ public class UserService {
             }
             // 2. 更新密码
             User admin = users.get(0);
-            admin.setPassword(MD5Util.getMD5String(newPassword));
+            admin.setPassword(Md5Util.getMD5String(newPassword));
             int res = userMapper.updateByPrimaryKeySelective(admin);
             if (res == 1) {
                 logService.saveLog("修改密码成功");

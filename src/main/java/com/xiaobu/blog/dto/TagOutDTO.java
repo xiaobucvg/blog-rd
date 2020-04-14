@@ -1,5 +1,6 @@
 package com.xiaobu.blog.dto;
 
+import com.xiaobu.blog.dto.interfaces.Convert;
 import com.xiaobu.blog.model.Tag;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;

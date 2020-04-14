@@ -27,7 +27,7 @@ import java.util.Objects;
 public class TokenUtil {
 
     @Autowired
-    private JSONUtil jsonUtil;
+    private JsonUtil jsonUtil;
 
     // token 缓存区
     private ExpiryMap<String, Token> tokenMap = new ExpiryMap<>();

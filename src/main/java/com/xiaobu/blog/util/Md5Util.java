@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * @author zh  --2020/3/23 10:42
  */
-public class MD5Util {
+public class Md5Util {
 
     public static String getMD5String(String str) throws NoSuchAlgorithmException {
         // 生成一个MD5加密计算摘要
