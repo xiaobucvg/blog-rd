@@ -412,10 +412,11 @@ public class ArticleService {
     }
 
     /**
-     * 获取文章详细信息
+     * 暴力获取文章详细信息
+     * 可以获取所有状态的文章信息
      */
-    public Response getDetailArticle(long id) {
-        ArticleWithTag articleWithTag = articleMapper._selectArticleWithTag(id);
+    public Response forceGetDetailArticleForce(long id) {
+        ArticleWithTag articleWithTag = articleMapper._forceSelectArticleWithTag(id);
         if (articleWithTag != null) {
             ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().copyFrom(articleWithTag);
             ((ArticleService) AopContext.currentProxy()).addReading(id);
@@ -490,6 +491,20 @@ public class ArticleService {
     }
 
     // ====================== 前台 ====================== //
+
+
+    /**
+     * 获取文章详细信息
+     */
+    public Response getDetailArticle(long id) {
+        ArticleWithTag articleWithTag = articleMapper._selectArticleWithTag(id);
+        if (articleWithTag != null) {
+            ArticleDetailOutDTO articleDetailOutDTO = new ArticleDetailOutDTO().copyFrom(articleWithTag);
+            ((ArticleService) AopContext.currentProxy()).addReading(id);
+            return Response.newSuccessInstance("获取文章详细信息成功", articleDetailOutDTO);
+        }
+        throw new ArticleException("获取失败，ID 为" + id + "的文章不存在");
+    }
 
     /**
      * 分页获取已经发布的文章

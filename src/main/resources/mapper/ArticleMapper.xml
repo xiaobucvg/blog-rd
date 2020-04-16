@@ -492,9 +492,9 @@
             delete from sm_article__tag
             where article_id in
             (
-                <foreach collection="list" separator="," item="article">
-                    #{article.id}
-                </foreach>
+            <foreach collection="list" separator="," item="article">
+                #{article.id}
+            </foreach>
             )
         </if>
     </delete>
@@ -543,7 +543,7 @@
     <select id="_countArticlesByKeywords" resultType="java.lang.Long">
         select count(*)
         from sm_article
-        where status in (1001,1002)
+        where status in (1001, 1002)
           and MATCH(title, content, abstract_info)
                     AGAINST(#{keywords} IN BOOLEAN MODE);
     </select>
@@ -557,6 +557,19 @@
             t.id as tid,t.name as tname
             from sm_article a join sm_article__tag at join sm_tag t
             on a.status = 1001 and a.id = at.article_id and t.id = at.tag_id
+            where a.id = #{id}
+        </if>
+    </select>
+    <select id="_forceSelectArticleWithTag" resultMap="article_width_tag">
+        <if test="id > 0">
+            select
+            a.id as aid,a.title as atitle,a.abstract_info as aabstractInfo,
+            a.content as acontent,a.status as astatus,a.reading as areading,
+            a.create_time as acreateTime,
+            a.update_time as aupdateTIme,
+            t.id as tid,t.name as tname
+            from sm_article a join sm_article__tag at join sm_tag t
+            on a.id = at.article_id and t.id = at.tag_id
             where a.id = #{id}
         </if>
     </select>

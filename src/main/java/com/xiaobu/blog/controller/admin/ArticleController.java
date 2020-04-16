@@ -85,7 +85,7 @@ public class ArticleController {
      */
     @GetMapping("/article")
     public Response getDetailArticle(@RequestParam Long id) {
-        return articleService.getDetailArticle(id);
+        return articleService.forceGetDetailArticleForce(id);
     }
 
     /**
