@@ -2,6 +2,7 @@ package com.xiaobu.blog.controller;
 
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.exception.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
  *
  * @author zh  --2020/3/18 16:48
  */
+@Slf4j
 @RestControllerAdvice
 public class ExceptionAdviceController {
 
@@ -51,33 +53,6 @@ public class ExceptionAdviceController {
         }
         return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, msg);
     }
-
-//    /**
-//     * bean 邦定值校验失败
-//     * 异常异常处理器
-//     */
-//    @ExceptionHandler({MethodArgumentNotValidException.class})
-//    public Response handleValidateException(MethodArgumentNotValidException ex) {
-//        BindingResult result = ex.getBindingResult();
-//        Map<String, String> errorsMap = new LinkedHashMap<>();
-//        result.getFieldErrors().forEach(error -> {
-//            errorsMap.put(error.getField(), error.getDefaultMessage());
-//        });
-//        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + "参数校验失败", errorsMap);
-//    }
-//
-//    /**
-//     * 方法参数校验失败
-//     * 异常处理器
-//     */
-//    @ExceptionHandler({ConstraintViolationException.class})
-//    public Response handleValidateException(ConstraintViolationException ex) {
-//        Map<String, String> errorsMap = new LinkedHashMap<>();
-//        ex.getConstraintViolations().forEach(val -> {
-//            errorsMap.put(val.getPropertyPath().toString(), val.getMessage());
-//        });
-//        return Response.newFailInstance(HttpServletResponse.SC_BAD_REQUEST, PRE_MESSAGE + "参数校验失败", errorsMap);
-//    }
 
     /**
      * 文章相关
@@ -131,6 +106,7 @@ public class ExceptionAdviceController {
      */
     @ExceptionHandler({Exception.class})
     public Response handleException(Exception ex) {
-        return Response.newFailInstance(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, PRE_MESSAGE + "内部错误");
+        log.error("发生了不可预知异常{}", ex.getMessage());
+        return Response.newFailInstance(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, PRE_MESSAGE + "发生内部错误");
     }
 }

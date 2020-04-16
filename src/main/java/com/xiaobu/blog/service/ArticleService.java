@@ -19,6 +19,7 @@ import com.xiaobu.blog.model.TagExample;
 import com.xiaobu.blog.model.wrapper.ArticleWithTag;
 import com.xiaobu.blog.util.FileUploadUtil;
 import com.xiaobu.blog.util.NetUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
  * @author zh  --2020/3/17 20:53
  */
 @Service
+@Slf4j
 public class ArticleService {
 
     @Autowired
@@ -67,6 +69,7 @@ public class ArticleService {
             return Response.newSuccessInstance("上传成功", uploadOutDTO);
         } catch (IOException e) {
             e.printStackTrace();
+            log.error("上传图片出错");
             throw new FileUploadException("上传图片时发生错误");
         }
     }
@@ -119,6 +122,7 @@ public class ArticleService {
             articleInDTO.setStatus(Const.ArticleStatus.LINK.getCode());
             return ((ArticleService) AopContext.currentProxy()).saveArticle(articleInDTO);
         }
+        log.warn("新建友情链接文章失败");
         throw new ArticleException("无法创建，'友情链接'已经存在");
     }
 
@@ -477,7 +481,11 @@ public class ArticleService {
             }
 
         }
-        logService.saveLog("删除ID为【" + ids + "】的文章成功");
+        if (ids == null) {
+            logService.saveLog("清空了回收站");
+        } else {
+            logService.saveLog("删除ID为【" + ids + "】的文章成功");
+        }
         return Response.newSuccessInstance("删除成功，删除了" + articles.size() + "篇文章");
     }
 

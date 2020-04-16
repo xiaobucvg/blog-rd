@@ -1,7 +1,7 @@
 package com.xiaobu.blog.validator.annotation;
 
-import com.xiaobu.blog.common.FileType;
 import com.xiaobu.blog.validator.MultipartFileValidator;
+import org.springframework.util.MimeTypeUtils;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -25,7 +25,7 @@ public @interface MultiPartFile {
 
     Class<? extends Payload>[] payload() default {};
 
-    FileType type() default FileType.ALL;
+    String[] type() default MimeTypeUtils.ALL_VALUE;
 
     long maxSize() default Long.MAX_VALUE;
 

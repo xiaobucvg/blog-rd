@@ -7,9 +7,9 @@ import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.service.ArticleService;
-import com.xiaobu.blog.common.FileType;
 import com.xiaobu.blog.validator.annotation.MultiPartFile;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -141,7 +141,12 @@ public class ArticleController {
      * /admin/articles/image POST
      */
     @PostMapping("/image")
-    public Response postImage(@RequestParam("img") @MultiPartFile(message = "上传的图片不符合要求", maxSize = Const.FILE_IMAGE_MAX_SIZE,type = FileType.IMAGE) MultipartFile multipartFile) {
+    public Response postImage(@RequestParam("img")
+                              @MultiPartFile(
+                                      message = "上传的图片不符合要求",
+                                      maxSize = Const.FILE_IMAGE_MAX_SIZE,
+                                      type = {MimeTypeUtils.IMAGE_GIF_VALUE, MimeTypeUtils.IMAGE_PNG_VALUE, MimeTypeUtils.IMAGE_JPEG_VALUE})
+                                      MultipartFile multipartFile) {
         return articleService.postImage(multipartFile);
     }
 }
