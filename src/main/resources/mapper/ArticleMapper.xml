@@ -470,15 +470,16 @@
     <insert id="_insertArticleTag" parameterType="com.xiaobu.blog.model.wrapper.ArticleWithTag">
 
         <bind name="_articleId" value="_parameter.getArticle().getId()"/>
-
-        insert into sm_article__tag
-        (article_id,tag_id)
-        values
-        <trim>
-            <foreach collection="tags" item="tag" separator=",">
-                (#{_articleId},#{tag.id})
-            </foreach>
-        </trim>
+        <if test="tags != null and tags.size > 0">
+            insert into sm_article__tag
+            (article_id ,tag_id)
+            values
+            <trim>
+                <foreach collection="tags" item="tag" separator=",">
+                    (#{_articleId},#{tag.id})
+                </foreach>
+            </trim>
+        </if>
     </insert>
 
     <delete id="_deleteAllTags" parameterType="com.xiaobu.blog.model.Article">
@@ -555,9 +556,11 @@
             a.create_time as acreateTime,
             a.update_time as aupdateTIme,
             t.id as tid,t.name as tname
-            from sm_article a join sm_article__tag at join sm_tag t
-            on a.status = 1001 and a.id = at.article_id and t.id = at.tag_id
-            where a.id = #{id}
+            from sm_article a left join sm_article__tag at
+            on a.id = at.article_id
+            left join sm_tag t
+            on t.id = at.tag_id
+            where a.id = #{id} and a.status=1001
         </if>
     </select>
     <select id="_forceSelectArticleWithTag" resultMap="article_width_tag">
@@ -568,8 +571,10 @@
             a.create_time as acreateTime,
             a.update_time as aupdateTIme,
             t.id as tid,t.name as tname
-            from sm_article a join sm_article__tag at join sm_tag t
-            on a.id = at.article_id and t.id = at.tag_id
+            from sm_article a left join sm_article__tag at
+            on a.id = at.article_id
+            left join sm_tag t
+            on t.id = at.tag_id
             where a.id = #{id}
         </if>
     </select>

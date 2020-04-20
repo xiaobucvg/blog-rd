@@ -1,6 +1,9 @@
 package com.xiaobu.blog.aspect;
 
-import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.xiaobu.blog.aspect.annotation.JsonParam;
+import com.xiaobu.blog.aspect.util.AfterProcessor;
+import com.xiaobu.blog.aspect.util.DefaultAfterProcessor;
 import com.xiaobu.blog.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -8,32 +11,29 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
 
 /**
- * 拦截所有注解了 @RequestJsonParamToObject 的方法
+ * 拦截所有方法参数中有 @JsonParam 的方法
  * 作用：
- * - 从拦截的方法的参数中获取第一个注解了 @RequestParam 的参数，获取该参数的值，需要确保值是一个可已被反序列化的字符串.
- * - 将字符串反序列化为对象，对象类型为 @RequestJsonParamToObject 的 value() 值.
- * - 将反序列化后的对象赋值给第一个注解了 @RequestParam 的参数的后一个对象，需要确保该对象的类型与@RequestJsonParamToObject 的 value() 值相同.
+ * - 从拦截的方法的参数中获取第一个注解了 @JsonParam 的参数，获取该参数的值，需要确保值是一个 json 字符串
+ * - 将字符串反序列化为对象，对象类型为 @JsonParam 的 value() 值
+ * - 将反序列化后的对象赋值给紧跟参数的后面的对象，类型要与 value() 保持一致
  *
  * @author zh  --2020/3/19 21:36
- * @see RequestJsonParamToObject
+ * @see JsonParam
  */
 @Aspect
 @Component
 @Slf4j
-@Order(100)
 public class RequestJsonParamAspect {
 
     @Autowired
@@ -41,57 +41,118 @@ public class RequestJsonParamAspect {
 
 
     // 匹配参数中有 @GetTypeWithJson 注解的方法
-    @Around("@annotation(com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject)")
+    @Around("execution(* com.xiaobu.blog..*.*(@com.xiaobu.blog.aspect.annotation.JsonParam (*),..))")
     public Object around(ProceedingJoinPoint jp) throws Throwable {
 
-        // 1. 获取注解了 @GetTypeWithJson 的参数位置
-        //    获取注解的值
-        int index = -1;
-        Class clazz = null;
+        try {
+            ArrayList<JsonWithValue> jsonWithValues = this.initBaseInfo(jp);
 
-        MethodSignature signature = (MethodSignature) jp.getSignature();
-        Method method = signature.getMethod();
-        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        for (int i = 0; i < parameterAnnotations.length; i++) {
-            for (Annotation annotation : parameterAnnotations[i]) {
-                if (annotation.annotationType().equals(RequestParam.class)) {
-                    index = i;
-                    i = parameterAnnotations.length;
+            this.jsonToValue(jsonWithValues, jp);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("json 参数转换到对象发生错误");
+            throw new RuntimeException("不能完成对象绑定");
+        }
+        return jp.proceed(jp.getArgs());
+    }
+
+    /**
+     * 初始化基本信息
+     *
+     * @return list 初始化列表
+     */
+    private ArrayList<JsonWithValue> initBaseInfo(ProceedingJoinPoint jp) {
+        ArrayList<JsonWithValue> list = new ArrayList<>();
+        // 遍历参数，获取注解
+        Object[] args = jp.getArgs();
+
+        MethodSignature methodSignature = (MethodSignature) jp.getSignature();
+        Parameter[] parameters = methodSignature.getMethod().getParameters();
+        for (int i = parameters.length - 1; i >= 0; i--) {
+            Parameter parameter = parameters[i];
+            JsonParam annotation = parameter.getDeclaredAnnotation(JsonParam.class);
+
+            if (annotation != null) {
+                if (!(Objects.equals(parameter.getType(), String.class))) {
+                    throw new RuntimeException(annotation.getClass().getName() + "只能注解 String 类型");
+                }
+                if (i + 1 >= parameters.length) {
+                    throw new RuntimeException("初始化信息失败，参数后面需要一个对象接收转换后的值");
+                }
+                Class<?> clazz = annotation.value();
+                if (Objects.equals(args[i + 1], clazz)) {
+                    throw new RuntimeException("初始化信息失败，参数后面需要一个指定类型的的对象接收转换后的值");
+                }
+                list.add(new JsonWithValue(args[i].toString(), i + 1, annotation));
+            }
+        }
+        return list;
+    }
+
+    /**
+     * 转换
+     */
+    private void jsonToValue(ArrayList<JsonWithValue> list, ProceedingJoinPoint jp) throws JsonProcessingException {
+        for (JsonWithValue jsonWithValue : list) {
+            Object res = jsonUtil.stringToObject(jsonWithValue.json, jsonWithValue.jsonParam.value());
+            // 后续处理器处理
+            this.afterProcess(res, jsonWithValue.jsonParam);
+            // jsr 验证字段
+            this.validate(res, jsonWithValue.jsonParam);
+            jp.getArgs()[jsonWithValue.valueIndex] = res;
+        }
+    }
+
+    /**
+     * 后续处理器处理
+     *
+     * @param obj                      要处理的对象
+     * @param jsonParam 注解
+     */
+    private void afterProcess(Object obj, JsonParam jsonParam) {
+        Class<? extends AfterProcessor>[] classes = jsonParam.afterProcessor();
+        if (classes.length == 1 && Objects.equals(classes[0], DefaultAfterProcessor.class)) {
+            return;
+        }
+        for (Class<? extends AfterProcessor> processor : classes) {
+            if (!Objects.equals(processor, DefaultAfterProcessor.class)) {
+                try {
+                    processor.getConstructor().newInstance().process(obj);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    log.error("{}-后续处理发生错误", obj.getClass().getName());
                 }
             }
         }
-        RequestJsonParamToObject an = signature.getMethod().getAnnotation(RequestJsonParamToObject.class);
-        clazz = (Class) an.getClass().getDeclaredMethod("value").invoke(an);
-
-        // 2. 确保没有异常
-        if (index == -1 || clazz == null) {
-            throw new RuntimeException("@GetTypeWithJson 使用错误,@RequestParam 不存在.");
-        }
-
-        // 3. 将此参数转换为对象,并赋值给后一个对象
-        Object[] args = jp.getArgs();
-        String json = (String) args[index];
-
-        if (!Objects.equals(args[index + 1].getClass(), clazz)) {
-            throw new RuntimeException("@GetTypeWithJson 使用错误,参数类型不匹配");
-        }
-
-        Object obj = null;
-        obj = jsonUtil.stringToObject(json, clazz);
-        if (obj == null) {
-            throw new RuntimeException("@GetTypeWithJson 使用错误,无法将 Json 反序列化.");
-        }
-        args[index + 1] = obj;
-
-        // 4. 检查是否需要校验参数
-        if ((boolean) an.getClass().getDeclaredMethod("needValidate").invoke(an)) {
-            Set<ConstraintViolation<Object>> res = Validation.buildDefaultValidatorFactory().getValidator().validate(obj);
-            if (res.size() > 0) {
-                throw new ConstraintViolationException(res);
-            }
-        }
-        return jp.proceed(args);
     }
 
+    /**
+     * 字段验证
+     *
+     * @param obj                      要验证的对象
+     * @param jsonParam 注解
+     */
+    private void validate(Object obj, JsonParam jsonParam) {
+        if (!jsonParam.needValidate()) {
+            return;
+        }
+        Set<ConstraintViolation<Object>> res = Validation.buildDefaultValidatorFactory().getValidator().validate(obj);
+        if (res.size() > 0) {
+            throw new ConstraintViolationException(res);
+        }
+    }
+
+
+    private static class JsonWithValue {
+        JsonParam jsonParam;
+        String json;   // json
+        int valueIndex;// 接收转换值的参数索引位置
+
+        JsonWithValue(String json, int valueIndex, JsonParam jsonParam) {
+            this.json = json;
+            this.valueIndex = valueIndex;
+            this.jsonParam = jsonParam;
+        }
+    }
 
 }

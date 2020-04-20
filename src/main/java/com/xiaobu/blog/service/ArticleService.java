@@ -105,6 +105,8 @@ public class ArticleService {
             throw new ArticleException("无法更新，文章ID不匹配");
         }
         // 开始更新
+        articleInDTO.setTags(new HashSet<>());
+        articleInDTO.setTitle("友情链接");
         articleInDTO.setStatus(Const.ArticleStatus.LINK.getCode());
         ((ArticleService) AopContext.currentProxy()).updateArticle(articleInDTO);
         return this.updateArticle(articleInDTO);
@@ -120,6 +122,8 @@ public class ArticleService {
         // 可以创建
         if (articles == null || articles.isEmpty()) {
             articleInDTO.setStatus(Const.ArticleStatus.LINK.getCode());
+            articleInDTO.setTags(new HashSet<>());
+            articleInDTO.setTitle("友情链接");
             return ((ArticleService) AopContext.currentProxy()).saveArticle(articleInDTO);
         }
         log.warn("新建友情链接文章失败");
@@ -136,6 +140,8 @@ public class ArticleService {
         // 可以创建
         if (articles == null || articles.isEmpty()) {
             articleInDTO.setStatus(Const.ArticleStatus.ABOUT.getCode());
+            articleInDTO.setTags(new HashSet<>());
+            articleInDTO.setTitle("关于我");
             return ((ArticleService) AopContext.currentProxy()).saveArticle(articleInDTO);
         }
         throw new ArticleException("无法创建，'关于我'已经存在");
@@ -160,6 +166,8 @@ public class ArticleService {
             throw new ArticleException("无法更新，要更新的文章不是'关于我'");
         }
         // 开始更新
+        articleInDTO.setTags(new HashSet<>());
+        articleInDTO.setTitle("关于我");
         articleInDTO.setStatus(Const.ArticleStatus.ABOUT.getCode());
         return ((ArticleService) AopContext.currentProxy()).updateArticle(articleInDTO);
     }
@@ -244,7 +252,9 @@ public class ArticleService {
                 logService.saveLog("尝试新建文章：'" + articleInDTO.getTitle() + "'失败");
                 throw new ArticleException("创建失败，文章没有被创建");
             }
-            articleMapper._insertArticleTag(articleWithTag);
+            if (tags.size() > 0) {
+                articleMapper._insertArticleTag(articleWithTag);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             logService.saveLog("尝试新建文章：'" + articleInDTO.getTitle() + "'失败");
@@ -429,7 +439,7 @@ public class ArticleService {
      * 异步的增加访问量
      */
     @Async
-    void addReading(long id) {
+    synchronized void addReading(long id) {
         try {
             articleMapper._addReading(id);
         } catch (Exception e) {
@@ -495,6 +505,7 @@ public class ArticleService {
 
     /**
      * 获取文章详细信息
+     * 只能获取已发布的文章信息
      */
     public Response getDetailArticle(long id) {
         ArticleWithTag articleWithTag = articleMapper._selectArticleWithTag(id);
@@ -503,7 +514,7 @@ public class ArticleService {
             ((ArticleService) AopContext.currentProxy()).addReading(id);
             return Response.newSuccessInstance("获取文章详细信息成功", articleDetailOutDTO);
         }
-        throw new ArticleException("获取失败，ID 为" + id + "的文章不存在");
+        throw new ArticleException("获取失败，ID 为" + id + "的文章没有发布");
     }
 
     /**

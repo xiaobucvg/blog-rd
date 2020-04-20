@@ -1,7 +1,7 @@
 package com.xiaobu.blog.controller.client;
 
-import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
-import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
+import com.xiaobu.blog.aspect.annotation.JsonParam;
+import com.xiaobu.blog.aspect.util.PageableAfterProcessor;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.service.TagService;
@@ -28,9 +28,7 @@ public class TagController {
      * /tags
      */
     @GetMapping
-    @RequestJsonParamToObject(Pageable.class)
-    @PageableAutoCalculate
-    public Response getTags(@RequestParam("json") String json, Pageable pageable) {
+    public Response getTags(@RequestParam("json") @JsonParam(value = Pageable.class, afterProcessor = PageableAfterProcessor.class) String json, Pageable pageable) {
         return tagService.getTags(pageable);
     }
 }

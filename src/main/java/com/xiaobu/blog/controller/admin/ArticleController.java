@@ -1,13 +1,14 @@
 package com.xiaobu.blog.controller.admin;
 
-import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
-import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
+import com.xiaobu.blog.aspect.annotation.JsonParam;
+import com.xiaobu.blog.aspect.util.PageableAfterProcessor;
 import com.xiaobu.blog.common.Const;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.dto.ArticleInDTO;
 import com.xiaobu.blog.service.ArticleService;
 import com.xiaobu.blog.validator.annotation.MultiPartFile;
+import com.xiaobu.blog.validator.group.DefaultArticleGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
@@ -36,7 +37,7 @@ public class ArticleController {
      * /admin/articles POST
      */
     @PostMapping
-    public Response postArticle(@RequestBody @Valid ArticleInDTO articleDTO) {
+    public Response postArticle(@RequestBody @Validated({DefaultArticleGroup.class}) ArticleInDTO articleDTO) {
         if (articleDTO.getId() == null) {
             return articleService.saveArticle(articleDTO);
         } else {
@@ -94,10 +95,9 @@ public class ArticleController {
      * /admin/articles?json={}&keywords=""
      */
     @GetMapping
-    @RequestJsonParamToObject(Pageable.class)
-    @PageableAutoCalculate
     public Response searchArticle(
-            @RequestParam("json") String json, Pageable pageable,
+            @RequestParam("json") @JsonParam(value = Pageable.class, afterProcessor = PageableAfterProcessor.class) String json,
+            Pageable pageable,
             @RequestParam(value = "keywords", required = false) String keywords) {
         // 没有关键字
         if (StringUtils.isEmpty(keywords)) {
@@ -112,9 +112,7 @@ public class ArticleController {
      * /admin/articles/deleted-articles?json={}
      */
     @GetMapping("/deleted-articles")
-    @RequestJsonParamToObject(Pageable.class)
-    @PageableAutoCalculate
-    public Response searchDeletedArticles(@RequestParam("json") String json, Pageable pageable) {
+    public Response searchDeletedArticles(@RequestParam("json") @JsonParam(value = Pageable.class, afterProcessor = PageableAfterProcessor.class) String json, Pageable pageable) {
         return articleService.getDeletedArticles(pageable);
     }
 

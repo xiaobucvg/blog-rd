@@ -5,6 +5,7 @@ import com.xiaobu.blog.dto.interfaces.Convert;
 import com.xiaobu.blog.model.Article;
 import com.xiaobu.blog.model.Tag;
 import com.xiaobu.blog.model.wrapper.ArticleWithTag;
+import com.xiaobu.blog.validator.group.DefaultArticleGroup;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -27,13 +28,13 @@ public class ArticleInDTO implements Convert<ArticleWithTag> {
 
     private Long id;
 
-    @NotBlank(message = "文章标题不能为空")
+    @NotBlank(groups = {DefaultArticleGroup.class}, message = "文章标题不能为空")
     private String title;
 
-    @NotBlank(message = "文章内容不能为空")
+    @NotBlank(message = "内容不能为空")
     private String content;
 
-    @NotEmpty(message = "文章至少要有一个标签")
+    @NotEmpty(groups = {DefaultArticleGroup.class}, message = "文章至少要有一个标签")
     private Set<String> tags = new HashSet<>();
 
     private Integer status = Const.ArticleStatus.PUBLISHED.getCode();
@@ -67,8 +68,8 @@ public class ArticleInDTO implements Convert<ArticleWithTag> {
         Matcher m = p.matcher(content);
         String res = m.replaceAll("");
 
-        if (res.length() > 255) {
-            return res.substring(0, 255);
+        if (res.length() > 100) {
+            return res.substring(0, 100);
         }
         return res;
     }

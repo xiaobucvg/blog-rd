@@ -1,7 +1,7 @@
 package com.xiaobu.blog.controller.admin;
 
-import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
-import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
+import com.xiaobu.blog.aspect.annotation.JsonParam;
+import com.xiaobu.blog.aspect.util.PageableAfterProcessor;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.service.LogService;
@@ -29,9 +29,7 @@ public class LogController {
      * /logs?json={}
      */
     @GetMapping
-    @PageableAutoCalculate
-    @RequestJsonParamToObject(Pageable.class)
-    public Response getLogs(@RequestParam String json, Pageable pageable, BindingResult bindingResult) {
+    public Response getLogs(@RequestParam @JsonParam(value = Pageable.class, afterProcessor = PageableAfterProcessor.class) String json, Pageable pageable, BindingResult bindingResult) {
         return logService.getLogs(pageable);
     }
 

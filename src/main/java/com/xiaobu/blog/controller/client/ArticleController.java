@@ -1,7 +1,7 @@
 package com.xiaobu.blog.controller.client;
 
-import com.xiaobu.blog.aspect.annotation.PageableAutoCalculate;
-import com.xiaobu.blog.aspect.annotation.RequestJsonParamToObject;
+import com.xiaobu.blog.aspect.annotation.JsonParam;
+import com.xiaobu.blog.aspect.util.PageableAfterProcessor;
 import com.xiaobu.blog.common.page.Pageable;
 import com.xiaobu.blog.common.response.Response;
 import com.xiaobu.blog.service.ArticleService;
@@ -53,10 +53,8 @@ public class ArticleController {
      * /articles?json={}&keywords=""&tagid=1
      */
     @GetMapping
-    @RequestJsonParamToObject(Pageable.class)
-    @PageableAutoCalculate
     public Response searchArticle(
-            @RequestParam("json") String json, Pageable pageable,
+            @RequestParam("json") @JsonParam(value = Pageable.class, afterProcessor = PageableAfterProcessor.class) String json, Pageable pageable,
             @RequestParam(value = "keywords", required = false) String keywords,
             @RequestParam(value = "tagid", required = false) Long tagid
     ) {
@@ -77,9 +75,7 @@ public class ArticleController {
      * /articles/archives?json={}
      */
     @GetMapping("/archives")
-    @RequestJsonParamToObject(Pageable.class)
-    @PageableAutoCalculate
-    public Response archiveArticle(@RequestParam("json") String json, Pageable pageable) {
+    public Response archiveArticle(@RequestParam("json") @JsonParam(value = Pageable.class, afterProcessor = PageableAfterProcessor.class) String json, Pageable pageable) {
         return articleService.archiveArticles(pageable);
     }
 
