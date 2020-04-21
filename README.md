@@ -18,13 +18,17 @@
  - 阅读量图表
  - 日志记录
  
+ ## 更新
+ - 2020/04/20 修改 @JsonParamToObject 为 @JsonParam ，并将切面修改为更加通用的形式，去掉了“分页自动计算注解”
+ - 2020/04/19 修改关于我与友情链接的实现方式
+ 
 ## 安装与部署
 
-在前之前，您需要在部署的的机器上安装好 Maven, MySQL8 和 JDK 11（JDK14 都正式发布了，不要抱着老版本不放手了）
+在此之前，您需要在部署的的机器上安装好 Maven, MySQL8 和 JDK 8+
 按照下面的步骤进行：
 - `git clone ...` 或者直接下载
 - 修改配置文件`application-dev.yml`或者`application-prod.yml`中数据库连接参数（用户名，密码等）
-- `mvn package`
+- `mvn clean package`
 - 运行（可以根据不同的配置文件运行在不同环境下）
     - `java -jar xxx.jar --spring.profiles.active=dev`（开发环境运行）
     - `java -jar xxx.jar --spring.profiles.active=prod`（生产环境运行）
@@ -72,10 +76,6 @@ Spring 本身支持 GET 方式接收 RequestBody ,可以直接将查询参数放
 定义注解 ：@Log
 定义切面 : LogAspect
 切面作用，拦截所有注解了 @Log 的方法， 异步的将本次请求的 IP 地址和做的操作存到数据库中。~~
-
-## 更新
-- 2020/04/20 修改 @JsonParamToObject 为 @JsonParam ，并将切面修改为更加通用的形式，去掉了“分页自动计算注解”
-- 2020/04/19 修改关于我与友情链接的实现方式
 
 ## 维护者    
 [@xiaobucvg](https://github.com/xiaobucvg)
