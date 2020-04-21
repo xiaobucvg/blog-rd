@@ -3,6 +3,9 @@
 使用 SpringBoot + Mybatis 实现的后端项目，没有复杂的功能，没有使用高大上的技术，
 作者本人也是新手小白，所以比较适合 Java Web 初学者学习使用。
 
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="90" height="20"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="a"><rect width="90" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#a)"><path fill="#555" d="M0 0h59v20H0z"/><path fill="#97ca00" d="M59 0h31v20H59z"/><path fill="url(#b)" d="M0 0h90v20H0z"/></g><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110"> <text x="305" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="490">LICENSE</text><text x="305" y="140" transform="scale(.1)" textLength="490">LICENSE</text><text x="735" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="210">MIT</text><text x="735" y="140" transform="scale(.1)" textLength="210">MIT</text></g> </svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="20"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="a"><rect width="100" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#a)"><path fill="#555" d="M0 0h61v20H0z"/><path fill="#007ec6" d="M61 0h39v20H61z"/><path fill="url(#b)" d="M0 0h100v20H0z"/></g><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110"> <text x="315" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="510">VERSION</text><text x="315" y="140" transform="scale(.1)" textLength="510">VERSION</text><text x="795" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="290">1.0.0</text><text x="795" y="140" transform="scale(.1)" textLength="290">1.0.0</text></g> </svg>
+
 ## 背景
 
 简博客是我 2020 年 3 月 开启的一个项目，整个项目采用前后端分离的模式进行开发，前端使用 webpack 与 node.js 环境进行开发，
@@ -66,8 +69,8 @@ Spring 本身支持 GET 方式接收 RequestBody ,可以直接将查询参数放
 切面作用，拦截所有注解了 @Log 的方法， 异步的将本次请求的 IP 地址和做的操作存到数据库中。~~
 
 ## 更新
-2020/04/19 - 修改关于我与友情链接的实现方式
-2020/04/20 - 修改 @JsonParamToObject 为 @JsonParam ，并将切面修改为更加通用的形式，去掉了“分页自动计算注解”
+- 2020/04/19 修改关于我与友情链接的实现方式
+- 2020/04/20 修改 @JsonParamToObject 为 @JsonParam ，并将切面修改为更加通用的形式，去掉了“分页自动计算注解”
 
 ## 维护者    
 [@xiaobucvg](https://github.com/xiaobucvg)
